@@ -108,7 +108,12 @@ def generate():
         print("\U0001f7e2 JSON received:", data)
         path = generate_sop_doc(data)
         print("\u2705 Document generated:", path)
-        return send_file(path, as_attachment=True)
+        return send_file(
+            path,
+            as_attachment=True,
+            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+
     except Exception as e:
         print("\u274c Error:", e)
         return {"error": str(e)}, 500
