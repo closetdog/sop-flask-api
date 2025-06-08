@@ -96,9 +96,10 @@ def generate_sop_doc(data):
     paragraph(f"Revision Date: {data.get('revision_date', 'Date')}")
     hr()
 
-    for i, section in enumerate(data.get("sections", [])):
+    sections = data.get("sections", [])
+    for i, section in enumerate(sections):
         heading_paragraph(section["heading"])
-                for idx, item in enumerate(section.get("content", [])):
+        for idx, item in enumerate(section.get("content", [])):
             if not item.get("text"):
                 continue  # skip empty items
             t = item["type"]
@@ -124,7 +125,8 @@ def generate_sop_doc(data):
             elif t == "dash":
                 dash(item["text"], indent=item.get("indent", 0.45))
             elif t == "sub_bullet":
-                sub_bullet(item["text"], indent=item.get("indent", 0.90))(data.get("sections", [])) - 1:
+                sub_bullet(item["text"], indent=item.get("indent", 0.90))
+        if i < len(sections) - 1:
             hr()
 
     filename = f"sop_{uuid.uuid4().hex}.docx"
