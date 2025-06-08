@@ -45,13 +45,12 @@ def generate_sop_doc(data):
         para.paragraph_format.space_after = Pt(0)
         para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
-    def paragraph(text, bold=False, size=None):
-        para = doc.add_paragraph(style="No Spacing")
+    def paragraph(text, bold=False, size=11):
+        para = doc.add_paragraph()
         run = para.add_run(text)
         if bold:
             run.bold = True
-        if size:
-            run.font.size = Pt(size)
+        run.font.size = Pt(size)
         run.font.color.rgb = RGBColor(0, 0, 0)
         para.paragraph_format.space_before = Pt(0)
         para.paragraph_format.space_after = Pt(0)
@@ -100,6 +99,8 @@ def generate_sop_doc(data):
     for section in data.get("sections", []):
         heading_paragraph(section["heading"])
         for item in section.get("content", []):
+            if not item.get("text"):
+                continue  # skip empty items
             t = item["type"]
             if t == "text":
                 paragraph(item["text"], bold=item.get("bold", False))
