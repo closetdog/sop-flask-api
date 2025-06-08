@@ -122,7 +122,7 @@ def generate_sop_doc(data):
                 if "," in rest:
                     for role in rest.split(","):
                         para = doc.add_paragraph(style='List Bullet')
-                        para.paragraph_format.left_indent = Inches(0.38)
+                        para.paragraph_format.left_indent = Inches(0.5)
                         run = para.add_run(role.strip())
                         run.font.size = Pt(11)
                         run.font.color.rgb = RGBColor(0, 0, 0)
