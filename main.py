@@ -111,8 +111,10 @@ def generate():
         return send_file(
             path,
             as_attachment=True,
+            download_name="sop_export.docx",
             mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
+
 
     except Exception as e:
         print("\u274c Error:", e)
