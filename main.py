@@ -121,7 +121,14 @@ def generate_sop_doc(data):
                 label, _, rest = text.partition(":")
                 if "," in rest:
                     for role in rest.split(","):
-                        bullet(role.strip(), indent=0.5)
+                        para = doc.add_paragraph(style='List Bullet')
+                        para.paragraph_format.left_indent = Inches(0.38)
+                        run = para.add_run(role.strip())
+                        run.font.size = Pt(11)
+                        run.font.color.rgb = RGBColor(0, 0, 0)
+                        para.paragraph_format.space_before = Pt(0)
+                        para.paragraph_format.space_after = Pt(0)
+                        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
                 else:
                     para = doc.add_paragraph()
                     run1 = para.add_run(f"Roles:")
