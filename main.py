@@ -101,14 +101,30 @@ def generate_sop_doc(data):
         heading_paragraph(section["heading"])
         for idx, item in enumerate(section.get("content", [])):
             if not item.get("text"):
-                continue  # skip empty items
+                continue
             t = item["type"]
-            if t == "text":
-                text = item["text"]
-                if text.lower().startswith("objective:") or text.lower().startswith("scope:"):
-                    label, _, rest = text.partition(":")
+            text = item["text"]
+            if t == "text" and text.lower().startswith("process owner:"):
+                label, _, rest = text.partition(":")
+                para = doc.add_paragraph()
+                run1 = para.add_run(f"{label}:")
+                run1.bold = True
+                run1.font.size = Pt(11)
+                run1.font.color.rgb = RGBColor(0, 0, 0)
+                run2 = para.add_run(f" {rest.strip()}")
+                run2.font.size = Pt(11)
+                run2.font.color.rgb = RGBColor(0, 0, 0)
+                para.paragraph_format.space_before = Pt(0)
+                para.paragraph_format.space_after = Pt(6)
+                para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+            elif t == "text" and text.lower().startswith("roles:"):
+                label, _, rest = text.partition(":")
+                if "," in rest:
+                    for role in rest.split(","):
+                        bullet(role.strip(), indent=0.5)
+                else:
                     para = doc.add_paragraph()
-                    run1 = para.add_run(f"{label}:")
+                    run1 = para.add_run(f"Roles:")
                     run1.bold = True
                     run1.font.size = Pt(11)
                     run1.font.color.rgb = RGBColor(0, 0, 0)
@@ -116,10 +132,23 @@ def generate_sop_doc(data):
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
                     para.paragraph_format.space_before = Pt(0)
-                    para.paragraph_format.space_after = Pt(6) if label.lower() == "objective" else Pt(0)
+                    para.paragraph_format.space_after = Pt(0)
                     para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-                else:
-                    paragraph(text, bold=item.get("bold", False))
+            elif t == "text" and (text.lower().startswith("objective:") or text.lower().startswith("scope:")):
+                label, _, rest = text.partition(":")
+                para = doc.add_paragraph()
+                run1 = para.add_run(f"{label}:")
+                run1.bold = True
+                run1.font.size = Pt(11)
+                run1.font.color.rgb = RGBColor(0, 0, 0)
+                run2 = para.add_run(f" {rest.strip()}")
+                run2.font.size = Pt(11)
+                run2.font.color.rgb = RGBColor(0, 0, 0)
+                para.paragraph_format.space_before = Pt(0)
+                para.paragraph_format.space_after = Pt(6) if label.lower() == "objective" else Pt(0)
+                para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+            elif t == "text":
+                paragraph(text, bold=item.get("bold", False))
             elif t == "bullet":
                 bullet(item["text"], indent=item.get("indent", 0.5))
             elif t == "dash":
