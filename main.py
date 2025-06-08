@@ -114,9 +114,20 @@ def generate_sop_doc(data):
                 run1.bold = True
                 run1.font.size = Pt(11)
                 run1.font.color.rgb = RGBColor(0, 0, 0)
-                run2 = para.add_run(f" {rest.strip()}")
-                run2.font.size = Pt(11)
-                run2.font.color.rgb = RGBColor(0, 0, 0)
+                if "," in rest:
+                    for item in rest.split(","):
+                        para = doc.add_paragraph(style='List Bullet')
+                        para.paragraph_format.left_indent = Inches(0.5)
+                        run = para.add_run(item.strip())
+                        run.font.size = Pt(11)
+                        run.font.color.rgb = RGBColor(0, 0, 0)
+                        para.paragraph_format.space_before = Pt(0)
+                        para.paragraph_format.space_after = Pt(0)
+                        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+                else:
+                    run2 = para.add_run(f" {rest.strip()}")
+                    run2.font.size = Pt(11)
+                    run2.font.color.rgb = RGBColor(0, 0, 0)
                 para.paragraph_format.space_before = Pt(0)
                 para.paragraph_format.space_after = Pt(6)
                 para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
@@ -149,7 +160,7 @@ def generate_sop_doc(data):
                     role_index += 1
                 idx = role_index - 1
 
-            elif t == "text" and (text.lower().startswith("objective:") or text.lower().startswith("scope:")):
+            elif t == "text" and (text.lower().startswith("objective:") or text.lower().startswith("scope:") or text.lower().startswith("inputs:") or text.lower().startswith("outputs:")):
                 label, _, rest = text.partition(":")
                 para = doc.add_paragraph()
                 run1 = para.add_run(f"{label}:")
@@ -160,7 +171,7 @@ def generate_sop_doc(data):
                 run2.font.size = Pt(11)
                 run2.font.color.rgb = RGBColor(0, 0, 0)
                 para.paragraph_format.space_before = Pt(0)
-                para.paragraph_format.space_after = Pt(6) if label.lower() == "objective" else Pt(0)
+                para.paragraph_format.space_after = Pt(6) if label.lower() in ["objective", "inputs"] else Pt(0)
                 para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
             elif t == "text":
                 paragraph(text, bold=item.get("bold", False))
