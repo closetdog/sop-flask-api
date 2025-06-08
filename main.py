@@ -96,7 +96,7 @@ def generate_sop_doc(data):
     paragraph(f"Revision Date: {data.get('revision_date', 'Date')}")
     hr()
 
-    for section in data.get("sections", []):
+    for i, section in enumerate(data.get("sections", [])):
         heading_paragraph(section["heading"])
         for item in section.get("content", []):
             if not item.get("text"):
@@ -110,7 +110,8 @@ def generate_sop_doc(data):
                 dash(item["text"], indent=item.get("indent", 0.45))
             elif t == "sub_bullet":
                 sub_bullet(item["text"], indent=item.get("indent", 0.90))
-        hr()
+        if i < len(data.get("sections", [])) - 1:
+            hr()
 
     filename = f"sop_{uuid.uuid4().hex}.docx"
     filepath = os.path.join(DOWNLOAD_FOLDER, filename)
