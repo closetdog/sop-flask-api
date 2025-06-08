@@ -1,12 +1,27 @@
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, jsonify
 from docx import Document
 from docx.shared import Pt, Inches, RGBColor
 from docx.oxml.shared import qn
 from docx.oxml import OxmlElement
 from docx.enum.text import WD_LINE_SPACING
 import tempfile
+import os
+import uuid
 
 app = Flask(__name__)
+DOWNLOAD_FOLDER = "/tmp"
+
+@app.route("/download/<filename>", methods=["GET"])
+def download_file(filename):
+    filepath = os.path.join(DOWNLOAD_FOLDER, filename)
+    if os.path.exists(filepath):
+        return send_file(
+            filepath,
+            as_attachment=True,
+            download_name=filename,
+            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+    return {"error": "File not found."}, 404
 
 def generate_sop_doc(data):
     doc = Document()
@@ -62,7 +77,7 @@ def generate_sop_doc(data):
 
     def dash(text, indent=0.45):
         para = doc.add_paragraph()
-        para.add_run(f"\u2013 {text}")
+        para.add_run(f"– {text}")
         para.paragraph_format.left_indent = Inches(indent)
         para.paragraph_format.space_before = Pt(0)
         para.paragraph_format.space_after = Pt(0)
@@ -96,28 +111,23 @@ def generate_sop_doc(data):
                 sub_bullet(item["text"], indent=item.get("indent", 0.90))
         hr()
 
-    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".docx")
-    doc.save(tmp.name)
-    return tmp.name
+    filename = f"sop_{uuid.uuid4().hex}.docx"
+    filepath = os.path.join(DOWNLOAD_FOLDER, filename)
+    doc.save(filepath)
+    return filename
 
 @app.route("/generate", methods=["POST"])
 def generate():
-    print("\U0001f535 Received request to /generate")
+    print("🔵 Received request to /generate")
     try:
         data = request.json
-        print("\U0001f7e2 JSON received:", data)
-        path = generate_sop_doc(data)
-        print("\u2705 Document generated:", path)
-        return send_file(
-            path,
-            as_attachment=True,
-            download_name="sop_export.docx",
-            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        )
-
-
+        print("🟢 JSON received:", data)
+        filename = generate_sop_doc(data)
+        print("✅ Document saved as:", filename)
+        link = f"https://sop-flask-api.onrender.com/download/{filename}"
+        return jsonify({"download_link": link})
     except Exception as e:
-        print("\u274c Error:", e)
+        print("❌ Error:", e)
         return {"error": str(e)}, 500
 
 if __name__ == "__main__":
