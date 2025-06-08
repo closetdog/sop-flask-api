@@ -119,16 +119,31 @@ def generate_sop_doc(data):
                 para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
             elif t == "text" and text.lower().startswith("roles:"):
                 label, _, rest = text.partition(":")
-                if "," in rest:
-                    for role in rest.split(","):
-                        para = doc.add_paragraph(style='List Bullet')
-                        para.paragraph_format.left_indent = Inches(0.5)
-                        run = para.add_run(role.strip())
-                        run.font.size = Pt(11)
-                        run.font.color.rgb = RGBColor(0, 0, 0)
-                        para.paragraph_format.space_before = Pt(0)
-                        para.paragraph_format.space_after = Pt(0)
-                        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+                para = doc.add_paragraph()
+                run1 = para.add_run(f"{label}:")
+                run1.bold = True
+                run1.font.size = Pt(11)
+                run1.font.color.rgb = RGBColor(0, 0, 0)
+                para.paragraph_format.space_before = Pt(0)
+                para.paragraph_format.space_after = Pt(0)
+                para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+                # capture following items that are plain roles
+                role_index = idx + 1
+                while role_index < len(section["content"]):
+                    role_item = section["content"][role_index]
+                    role_text = role_item.get("text", "").strip()
+                    if not role_text or any(role_text.lower().startswith(x) for x in ["process owner:", "objective:", "scope:", "roles:"]):
+                        break
+                    para = doc.add_paragraph(style='List Bullet')
+                    para.paragraph_format.left_indent = Inches(0.5)
+                    run = para.add_run(role_text)
+                    run.font.size = Pt(11)
+                    run.font.color.rgb = RGBColor(0, 0, 0)
+                    para.paragraph_format.space_before = Pt(0)
+                    para.paragraph_format.space_after = Pt(0)
+                    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+                    role_index += 1
+                idx = role_index - 1
                 else:
                     para = doc.add_paragraph()
                     run1 = para.add_run(f"Roles:")
