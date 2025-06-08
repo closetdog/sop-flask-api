@@ -99,7 +99,10 @@ def generate_sop_doc(data):
     sections = data.get("sections", [])
     for i, section in enumerate(sections):
         heading_paragraph(section["heading"])
+        skip_indices = set()
         for idx, item in enumerate(section.get("content", [])):
+            if idx in skip_indices:
+                continue
             if not item.get("text"):
                 continue
             t = item["type"]
@@ -142,6 +145,7 @@ def generate_sop_doc(data):
                     para.paragraph_format.space_before = Pt(0)
                     para.paragraph_format.space_after = Pt(0)
                     para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+                    skip_indices.add(role_index)
                     role_index += 1
                 idx = role_index - 1
 
