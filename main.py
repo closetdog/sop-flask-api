@@ -98,19 +98,33 @@ def generate_sop_doc(data):
 
     for i, section in enumerate(data.get("sections", [])):
         heading_paragraph(section["heading"])
-        for item in section.get("content", []):
+                for idx, item in enumerate(section.get("content", [])):
             if not item.get("text"):
                 continue  # skip empty items
             t = item["type"]
             if t == "text":
-                paragraph(item["text"], bold=item.get("bold", False))
+                text = item["text"]
+                if text.lower().startswith("objective:") or text.lower().startswith("scope:"):
+                    label, _, rest = text.partition(":")
+                    para = doc.add_paragraph()
+                    run1 = para.add_run(f"{label}:")
+                    run1.bold = True
+                    run1.font.size = Pt(11)
+                    run1.font.color.rgb = RGBColor(0, 0, 0)
+                    run2 = para.add_run(f" {rest.strip()}")
+                    run2.font.size = Pt(11)
+                    run2.font.color.rgb = RGBColor(0, 0, 0)
+                    para.paragraph_format.space_before = Pt(0)
+                    para.paragraph_format.space_after = Pt(6) if label.lower() == "objective" else Pt(0)
+                    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+                else:
+                    paragraph(text, bold=item.get("bold", False))
             elif t == "bullet":
                 bullet(item["text"], indent=item.get("indent", 0.5))
             elif t == "dash":
                 dash(item["text"], indent=item.get("indent", 0.45))
             elif t == "sub_bullet":
-                sub_bullet(item["text"], indent=item.get("indent", 0.90))
-        if i < len(data.get("sections", [])) - 1:
+                sub_bullet(item["text"], indent=item.get("indent", 0.90))(data.get("sections", [])) - 1:
             hr()
 
     filename = f"sop_{uuid.uuid4().hex}.docx"
