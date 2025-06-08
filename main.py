@@ -144,18 +144,7 @@ def generate_sop_doc(data):
                     para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
                     role_index += 1
                 idx = role_index - 1
-                else:
-                    para = doc.add_paragraph()
-                    run1 = para.add_run(f"Roles:")
-                    run1.bold = True
-                    run1.font.size = Pt(11)
-                    run1.font.color.rgb = RGBColor(0, 0, 0)
-                    run2 = para.add_run(f" {rest.strip()}")
-                    run2.font.size = Pt(11)
-                    run2.font.color.rgb = RGBColor(0, 0, 0)
-                    para.paragraph_format.space_before = Pt(0)
-                    para.paragraph_format.space_after = Pt(0)
-                    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+
             elif t == "text" and (text.lower().startswith("objective:") or text.lower().startswith("scope:")):
                 label, _, rest = text.partition(":")
                 para = doc.add_paragraph()
