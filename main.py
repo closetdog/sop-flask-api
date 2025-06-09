@@ -1,3 +1,4 @@
+import re
 from flask import Flask, request, send_file, jsonify
 from docx import Document
 from docx.shared import Pt, Inches, RGBColor
@@ -28,6 +29,28 @@ def generate_sop_doc(data):
     style = doc.styles['Normal']
     style.font.name = 'Calibri'
     style.font.size = Pt(11)
+
+    def format_paragraph_with_prefix(text, indent):
+        match = re.match(r"^([A-Za-z0-9ivxIVX]+[.)])\s+(.*)", text)
+        para = doc.add_paragraph()
+        if match:
+            prefix = match.group(1)
+            remainder = match.group(2)
+            run1 = para.add_run(prefix)
+            run1.bold = True
+            run1.font.size = Pt(11)
+            run1.font.color.rgb = RGBColor(0, 0, 0)
+            run2 = para.add_run(f" {remainder}")
+            run2.font.size = Pt(11)
+            run2.font.color.rgb = RGBColor(0, 0, 0)
+        else:
+            run = para.add_run(text)
+            run.font.size = Pt(11)
+            run.font.color.rgb = RGBColor(0, 0, 0)
+        para.paragraph_format.left_indent = Inches(indent)
+        para.paragraph_format.space_before = Pt(0)
+        para.paragraph_format.space_after = Pt(0)
+        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
     def hr():
         para = doc.add_paragraph()
@@ -66,208 +89,19 @@ def generate_sop_doc(data):
         para.paragraph_format.space_after = Pt(6)
         para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
-    def bullet(text, indent=0.5):
-        para = doc.add_paragraph(style='List Bullet')
-        para.add_run(text)
-        para.paragraph_format.left_indent = Inches(indent)
-        para.paragraph_format.space_before = Pt(0)
-        para.paragraph_format.space_after = Pt(0)
-        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-
-    def dash(text, indent=0.45):
-        para = doc.add_paragraph()
-        para.add_run(f"– {text}")
-        para.paragraph_format.left_indent = Inches(indent)
-        para.paragraph_format.space_before = Pt(0)
-        para.paragraph_format.space_after = Pt(0)
-        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-
-    def sub_bullet(text, indent=0.90):
-        para = doc.add_paragraph(style='List Bullet')
-        para.add_run(text)
-        para.paragraph_format.left_indent = Inches(indent)
-        para.paragraph_format.space_before = Pt(0)
-        para.paragraph_format.space_after = Pt(0)
-        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-
-    heading_paragraph(f"SOP Title: {data.get('title', 'Generated SOP')}", size=18)
-    paragraph(f"Prepared By: {data.get('prepared_by', 'Name')}")
-    paragraph(f"Approved By: {data.get('approved_by', 'Approver')}")
-    paragraph(f"Revision Date: {data.get('revision_date', 'Date')}")
-    hr()
-
     sections = data.get("sections", [])
     for i, section in enumerate(sections):
         heading_paragraph(section["heading"])
-        skip_indices = set()
-        for idx, item in enumerate(section.get("content", [])):
-            if idx in skip_indices:
-                continue
-            if not item.get("text"):
-                continue
+        for item in section.get("content", []):
             t = item["type"]
             text = item["text"]
-            if t == "text" and text.lower().startswith("process owner:"):
-                label, _, rest = text.partition(":")
-                para = doc.add_paragraph()
-                run1 = para.add_run(f"{label}:")
-                run1.bold = True
-                run1.font.size = Pt(11)
-                run1.font.color.rgb = RGBColor(0, 0, 0)
-                if "," in rest:
-                    para.paragraph_format.space_after = Pt(0)
-                    for item in rest.split(","):
-                        para = doc.add_paragraph(style='List Bullet')
-                        para.paragraph_format.left_indent = Inches(0.5)
-                        run = para.add_run(item.strip())
-                        run.font.size = Pt(11)
-                        run.font.color.rgb = RGBColor(0, 0, 0)
-                        para.paragraph_format.space_before = Pt(0)
-                        para.paragraph_format.space_after = Pt(0)
-                        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-                    para.paragraph_format.space_after = Pt(6)
-                
-                
-                    para.paragraph_format.space_after = Pt(6)
-                
-                para.paragraph_format.space_before = Pt(0)
-                para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-            elif t == "text" and text.lower().startswith("roles:"):
-                label, _, rest = text.partition(":")
-                para = doc.add_paragraph()
-                run1 = para.add_run(f"{label}:")
-                run1.bold = True
-                run1.font.size = Pt(11)
-                run1.font.color.rgb = RGBColor(0, 0, 0)
-                para.paragraph_format.space_before = Pt(0)
-                para.paragraph_format.space_after = Pt(0)
-                para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-                # capture following items that are plain roles
-                role_index = idx + 1
-                while role_index < len(section["content"]):
-                    role_item = section["content"][role_index]
-                    role_text = role_item.get("text", "").strip()
-                    if not role_text or any(role_text.lower().startswith(x) for x in ["process owner:", "objective:", "scope:", "roles:"]):
-                        break
-                    para = doc.add_paragraph(style='List Bullet')
-                    para.paragraph_format.left_indent = Inches(0.5)
-                    run = para.add_run(role_text)
-                    run.font.size = Pt(11)
-                    run.font.color.rgb = RGBColor(0, 0, 0)
-                    para.paragraph_format.space_before = Pt(0)
-                    para.paragraph_format.space_after = Pt(0)
-                    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-                    skip_indices.add(role_index)
-                    role_index += 1
-                idx = role_index - 1
+            indent = item.get("indent", 0.5 if t == "bullet" else 0.45 if t == "dash" else 0.9)
 
-            elif t == "text" and any(text.lower().startswith(x) for x in ["objective:", "scope:", "inputs:", "outputs:"]) and ":" in text:
-                label, _, rest = text.partition(":")
-                para = doc.add_paragraph()
-                run1 = para.add_run(f"{label.strip()}:")
-                run1.bold = True
-                run1.font.size = Pt(11)
-                run1.font.color.rgb = RGBColor(0, 0, 0)
-                para.paragraph_format.space_before = Pt(0)
-                para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-                para.paragraph_format.space_after = Pt(0)
-                # look ahead for bullets
-                start = idx + 1
-                bullets = []
-                while start < len(section["content"]):
-                    next_item = section["content"][start]
-                    if not next_item.get("text") or any(next_item["text"].lower().startswith(x) for x in ["process owner:", "objective:", "scope:", "inputs:", "outputs:", "roles:"]):
-                        break
-                    bullets.append(next_item["text"].strip())
-                    skip_indices.add(start)
-                    start += 1
-                if bullets:
-                    for b in bullets:
-                        bpara = doc.add_paragraph(style='List Bullet')
-                        bpara.paragraph_format.left_indent = Inches(0.5)
-                        run = bpara.add_run(b)
-                        run.font.size = Pt(11)
-                        run.font.color.rgb = RGBColor(0, 0, 0)
-                        bpara.paragraph_format.space_before = Pt(0)
-                        bpara.paragraph_format.space_after = Pt(0)
-                        bpara.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-                    bpara.paragraph_format.space_after = Pt(6)
-                
-                else:
-                    if "," in rest:
-                        for part in rest.split(","):
-                            para = doc.add_paragraph(style='List Bullet')
-                            para.paragraph_format.left_indent = Inches(0.5)
-                            run = para.add_run(part.strip())
-                            run.font.size = Pt(11)
-                            run.font.color.rgb = RGBColor(0, 0, 0)
-                            para.paragraph_format.space_before = Pt(0)
-                            para.paragraph_format.space_after = Pt(0)
-                            para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-                        para.paragraph_format.space_after = Pt(6)
-                    else:
-                        para = doc.add_paragraph(style='List Bullet')
-                        para.paragraph_format.left_indent = Inches(0.5)
-                        run2 = para.add_run(rest.strip())
-                        run2.font.size = Pt(11)
-                        run2.font.color.rgb = RGBColor(0, 0, 0)
-                        para.paragraph_format.space_after = Pt(6) if label.lower() in ["objective", "inputs"] else Pt(0)
+            if t in ["bullet", "dash", "sub_bullet"]:
+                format_paragraph_with_prefix(text, indent)
             elif t == "text":
                 paragraph(text, bold=item.get("bold", False))
-            elif t == "bullet":
-                text = item["text"]
-                if "." in text:
-                    prefix, remainder = text.split(".", 1)
-                    para = doc.add_paragraph()
-                    run1 = para.add_run(f"{prefix}.")
-                    run1.bold = True
-                    run1.font.size = Pt(11)
-                    run1.font.color.rgb = RGBColor(0, 0, 0)
-                    run2 = para.add_run(f"{remainder}")
-                    run2.font.size = Pt(11)
-                    run2.font.color.rgb = RGBColor(0, 0, 0)
-                    para.paragraph_format.left_indent = Inches(item.get("indent", 0.5))
-                    para.paragraph_format.space_before = Pt(0)
-                    para.paragraph_format.space_after = Pt(0)
-                    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-                else:
-                    bullet(item["text"], indent=item.get("indent", 0.5))
-            elif t == "dash":
-                text = item["text"]
-                if "." in text:
-                    prefix, remainder = text.split(".", 1)
-                    para = doc.add_paragraph()
-                    run1 = para.add_run(f"– {prefix}.")
-                    run1.bold = True
-                    run1.font.size = Pt(11)
-                    run1.font.color.rgb = RGBColor(0, 0, 0)
-                    run2 = para.add_run(f"{remainder}")
-                    run2.font.size = Pt(11)
-                    run2.font.color.rgb = RGBColor(0, 0, 0)
-                    para.paragraph_format.left_indent = Inches(item.get("indent", 0.45))
-                    para.paragraph_format.space_before = Pt(0)
-                    para.paragraph_format.space_after = Pt(0)
-                    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-                else:
-                    dash(item["text"], indent=item.get("indent", 0.45))
-            elif t == "sub_bullet":
-                text = item["text"]
-                if "." in text:
-                    prefix, remainder = text.split(".", 1)
-                    para = doc.add_paragraph()
-                    run1 = para.add_run(f"{prefix}.")
-                    run1.bold = True
-                    run1.font.size = Pt(11)
-                    run1.font.color.rgb = RGBColor(0, 0, 0)
-                    run2 = para.add_run(f"{remainder}")
-                    run2.font.size = Pt(11)
-                    run2.font.color.rgb = RGBColor(0, 0, 0)
-                    para.paragraph_format.left_indent = Inches(item.get("indent", 0.90))
-                    para.paragraph_format.space_before = Pt(0)
-                    para.paragraph_format.space_after = Pt(0)
-                    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-                else:
-                    sub_bullet(item["text"], indent=item.get("indent", 0.90))
+
         if i < len(sections) - 1:
             hr()
 
