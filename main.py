@@ -128,7 +128,7 @@ def generate_sop_doc(data):
                 
                 else:
                     if "," in rest:
-                    for part in rest.split(","):
+                        for part in rest.split(","):
                         bpara = doc.add_paragraph(style='List Bullet')
                         bpara.paragraph_format.left_indent = Inches(0.5)
                         brun = bpara.add_run(part.strip())
