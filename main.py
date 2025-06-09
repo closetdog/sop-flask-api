@@ -127,11 +127,23 @@ def generate_sop_doc(data):
                     para.paragraph_format.space_after = Pt(6)
                 
                 else:
+                    if "," in rest:
+                    for part in rest.split(","):
+                        bpara = doc.add_paragraph(style='List Bullet')
+                        bpara.paragraph_format.left_indent = Inches(0.5)
+                        brun = bpara.add_run(part.strip())
+                        brun.font.size = Pt(11)
+                        brun.font.color.rgb = RGBColor(0, 0, 0)
+                        bpara.paragraph_format.space_before = Pt(0)
+                        bpara.paragraph_format.space_after = Pt(0)
+                        bpara.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+                    para.paragraph_format.space_after = Pt(6)
+                else:
                     run2 = para.add_run(f" {rest.strip()}")
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
+                    para.paragraph_format.space_after = Pt(6) if label.lower() in ["objective", "inputs"] else Pt(0)
                 para.paragraph_format.space_before = Pt(0)
-                para.paragraph_format.space_after = Pt(6)
                 para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
             elif t == "text" and text.lower().startswith("roles:"):
                 label, _, rest = text.partition(":")
@@ -162,7 +174,7 @@ def generate_sop_doc(data):
                     role_index += 1
                 idx = role_index - 1
 
-            elif t == "text" and any(text.lower().startswith(x) for x in ["objective:", "scope:", "inputs:", "outputs:"]):
+            elif t == "text" and any(text.lower().startswith(x) for x in ["objective:", "scope:", "inputs:", "outputs:"]) and ":" in text:
                 label, _, rest = text.partition(":")
                 para = doc.add_paragraph()
                 run1 = para.add_run(f"{label}:")
