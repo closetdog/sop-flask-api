@@ -177,16 +177,44 @@ def generate_sop_doc(data):
             elif t == "text" and any(text.lower().startswith(x) for x in ["objective:", "scope:", "inputs:", "outputs:"]) and ":" in text:
                 label, _, rest = text.partition(":")
                 para = doc.add_paragraph()
-                run1 = para.add_run(f"{label}:")
+                run1 = para.add_run(f"{label.strip()}:")
                 run1.bold = True
                 run1.font.size = Pt(11)
                 run1.font.color.rgb = RGBColor(0, 0, 0)
-                run2 = para.add_run(f" {rest.strip()}")
-                run2.font.size = Pt(11)
-                run2.font.color.rgb = RGBColor(0, 0, 0)
                 para.paragraph_format.space_before = Pt(0)
-                para.paragraph_format.space_after = Pt(6) if label.lower() in ["objective", "inputs"] else Pt(0)
                 para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+                para.paragraph_format.space_after = Pt(0)
+                # look ahead for bullets
+                start = idx + 1
+                bullets = []
+                while start < len(section["content"]):
+                    next_item = section["content"][start]
+                    if not next_item.get("text") or any(next_item["text"].lower().startswith(x) for x in ["process owner:", "objective:", "scope:", "inputs:", "outputs:", "roles:"]):
+                        break
+                    bullets.append(next_item["text"].strip())
+                    skip_indices.add(start)
+                    start += 1
+                if bullets:
+                    for b in bullets:
+                        bpara = doc.add_paragraph(style='List Bullet')
+                        bpara.paragraph_format.left_indent = Inches(0.5)
+                        run = bpara.add_run(b)
+                        run.font.size = Pt(11)
+                        run.font.color.rgb = RGBColor(0, 0, 0)
+                        bpara.paragraph_format.space_before = Pt(0)
+                        bpara.paragraph_format.space_after = Pt(0)
+                        bpara.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+                    bpara.paragraph_format.space_after = Pt(6)
+                else:
+                    run2 = para.add_run(f" {rest.strip()}")
+                    run2.font.size = Pt(11)
+                    run2.font.color.rgb = RGBColor(0, 0, 0)
+                    para.paragraph_format.space_after = Pt(6) if label.lower() in ["objective", "inputs"] else Pt(0)
+                else:
+                    run2 = para.add_run(f" {rest.strip()}")
+                    run2.font.size = Pt(11)
+                    run2.font.color.rgb = RGBColor(0, 0, 0)
+                    para.paragraph_format.space_after = Pt(6) if label.lower() in ["objective", "inputs"] else Pt(0)
             elif t == "text":
                 paragraph(text, bold=item.get("bold", False))
             elif t == "bullet":
