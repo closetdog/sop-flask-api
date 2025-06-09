@@ -215,11 +215,59 @@ def generate_sop_doc(data):
             elif t == "text":
                 paragraph(text, bold=item.get("bold", False))
             elif t == "bullet":
-                bullet(item["text"], indent=item.get("indent", 0.5))
+                text = item["text"]
+                if "." in text:
+                    prefix, remainder = text.split(".", 1)
+                    para = doc.add_paragraph()
+                    run1 = para.add_run(f"{prefix}.")
+                    run1.bold = True
+                    run1.font.size = Pt(11)
+                    run1.font.color.rgb = RGBColor(0, 0, 0)
+                    run2 = para.add_run(f"{remainder}")
+                    run2.font.size = Pt(11)
+                    run2.font.color.rgb = RGBColor(0, 0, 0)
+                    para.paragraph_format.left_indent = Inches(item.get("indent", 0.5))
+                    para.paragraph_format.space_before = Pt(0)
+                    para.paragraph_format.space_after = Pt(0)
+                    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+                else:
+                    bullet(item["text"], indent=item.get("indent", 0.5))
             elif t == "dash":
-                dash(item["text"], indent=item.get("indent", 0.45))
+                text = item["text"]
+                if "." in text:
+                    prefix, remainder = text.split(".", 1)
+                    para = doc.add_paragraph()
+                    run1 = para.add_run(f"– {prefix}.")
+                    run1.bold = True
+                    run1.font.size = Pt(11)
+                    run1.font.color.rgb = RGBColor(0, 0, 0)
+                    run2 = para.add_run(f"{remainder}")
+                    run2.font.size = Pt(11)
+                    run2.font.color.rgb = RGBColor(0, 0, 0)
+                    para.paragraph_format.left_indent = Inches(item.get("indent", 0.45))
+                    para.paragraph_format.space_before = Pt(0)
+                    para.paragraph_format.space_after = Pt(0)
+                    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+                else:
+                    dash(item["text"], indent=item.get("indent", 0.45))
             elif t == "sub_bullet":
-                sub_bullet(item["text"], indent=item.get("indent", 0.90))
+                text = item["text"]
+                if "." in text:
+                    prefix, remainder = text.split(".", 1)
+                    para = doc.add_paragraph()
+                    run1 = para.add_run(f"{prefix}.")
+                    run1.bold = True
+                    run1.font.size = Pt(11)
+                    run1.font.color.rgb = RGBColor(0, 0, 0)
+                    run2 = para.add_run(f"{remainder}")
+                    run2.font.size = Pt(11)
+                    run2.font.color.rgb = RGBColor(0, 0, 0)
+                    para.paragraph_format.left_indent = Inches(item.get("indent", 0.90))
+                    para.paragraph_format.space_before = Pt(0)
+                    para.paragraph_format.space_after = Pt(0)
+                    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+                else:
+                    sub_bullet(item["text"], indent=item.get("indent", 0.90))
         if i < len(sections) - 1:
             hr()
 
