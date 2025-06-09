@@ -193,7 +193,9 @@ def generate_sop_doc(data):
                     bpara.paragraph_format.space_after = Pt(6)
                 
                 else:
-                    run2 = para.add_run(f" {rest.strip()}")
+                    para = doc.add_paragraph(style='List Bullet')
+                    para.paragraph_format.left_indent = Inches(0.5)
+                    run2 = para.add_run(rest.strip())
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
                     para.paragraph_format.space_after = Pt(6) if label.lower() in ["objective", "inputs"] else Pt(0)
