@@ -7,7 +7,6 @@ from docx.enum.text import WD_LINE_SPACING
 import tempfile
 import os
 import uuid
-import re
 
 app = Flask(__name__)
 DOWNLOAD_FOLDER = "/tmp"
@@ -67,27 +66,29 @@ def generate_sop_doc(data):
         para.paragraph_format.space_after = Pt(6)
         para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
-    def formatted_bullet(text, indent=0.5):
-        match = re.match(r"^([A-Za-z0-9ivxIVX]+[.)])\s+(.*)", text)
-        para = doc.add_paragraph()
+    def bullet(text, indent=0.5):
+        para = doc.add_paragraph(style='List Bullet')
+        para.add_run(text)
         para.paragraph_format.left_indent = Inches(indent)
         para.paragraph_format.space_before = Pt(0)
         para.paragraph_format.space_after = Pt(0)
         para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-        if match:
-            prefix = match.group(1)
-            remainder = match.group(2)
-            run1 = para.add_run(prefix)
-            run1.bold = True
-            run1.font.size = Pt(11)
-            run1.font.color.rgb = RGBColor(0, 0, 0)
-            run2 = para.add_run(f" {remainder}")
-            run2.font.size = Pt(11)
-            run2.font.color.rgb = RGBColor(0, 0, 0)
-        else:
-            run = para.add_run(text)
-            run.font.size = Pt(11)
-            run.font.color.rgb = RGBColor(0, 0, 0)
+
+    def dash(text, indent=0.45):
+        para = doc.add_paragraph()
+        para.add_run(f"– {text}")
+        para.paragraph_format.left_indent = Inches(indent)
+        para.paragraph_format.space_before = Pt(0)
+        para.paragraph_format.space_after = Pt(0)
+        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+
+    def sub_bullet(text, indent=0.90):
+        para = doc.add_paragraph(style='List Bullet')
+        para.add_run(text)
+        para.paragraph_format.left_indent = Inches(indent)
+        para.paragraph_format.space_before = Pt(0)
+        para.paragraph_format.space_after = Pt(0)
+        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
     heading_paragraph(f"SOP Title: {data.get('title', 'Generated SOP')}", size=18)
     paragraph(f"Prepared By: {data.get('prepared_by', 'Name')}")
@@ -108,8 +109,25 @@ def generate_sop_doc(data):
             text = item["text"]
             indent = item.get("indent", 0.5 if t == "bullet" else 0.45 if t == "dash" else 0.9)
 
-            if t in ["bullet", "dash", "sub_bullet"]:
-                formatted_bullet(text, indent)
+            if t == "text" and any(text.lower().startswith(x) for x in ["process owner:", "roles:", "objective:", "scope:", "inputs:", "outputs:"]):
+                label, _, rest = text.partition(":")
+                para = doc.add_paragraph()
+                run1 = para.add_run(f"{label.strip()}:")
+                run1.bold = True
+                run1.font.size = Pt(11)
+                run1.font.color.rgb = RGBColor(0, 0, 0)
+                run2 = para.add_run(f" {rest.strip()}")
+                run2.font.size = Pt(11)
+                run2.font.color.rgb = RGBColor(0, 0, 0)
+                para.paragraph_format.space_before = Pt(0)
+                para.paragraph_format.space_after = Pt(6)
+                para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+            elif t == "bullet":
+                bullet(text, indent)
+            elif t == "dash":
+                dash(text, indent)
+            elif t == "sub_bullet":
+                sub_bullet(text, indent)
             elif t == "text":
                 paragraph(text, bold=item.get("bold", False))
 
