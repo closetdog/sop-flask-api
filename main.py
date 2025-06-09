@@ -191,11 +191,7 @@ def generate_sop_doc(data):
                         bpara.paragraph_format.space_after = Pt(0)
                         bpara.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
                     bpara.paragraph_format.space_after = Pt(6)
-                else:
-                    run2 = para.add_run(f" {rest.strip()}")
-                    run2.font.size = Pt(11)
-                    run2.font.color.rgb = RGBColor(0, 0, 0)
-                    para.paragraph_format.space_after = Pt(6) if label.lower() in ["objective", "inputs"] else Pt(0)
+                
                 else:
                     run2 = para.add_run(f" {rest.strip()}")
                     run2.font.size = Pt(11)
