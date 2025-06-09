@@ -115,6 +115,7 @@ def generate_sop_doc(data):
                 run1.font.size = Pt(11)
                 run1.font.color.rgb = RGBColor(0, 0, 0)
                 if "," in rest:
+                    para.paragraph_format.space_after = Pt(0)
                     for item in rest.split(","):
                         para = doc.add_paragraph(style='List Bullet')
                         para.paragraph_format.left_indent = Inches(0.5)
