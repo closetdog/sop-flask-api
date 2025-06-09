@@ -1,4 +1,3 @@
-import re
 from flask import Flask, request, send_file, jsonify
 from docx import Document
 from docx.shared import Pt, Inches, RGBColor
@@ -8,6 +7,7 @@ from docx.enum.text import WD_LINE_SPACING
 import tempfile
 import os
 import uuid
+import re
 
 app = Flask(__name__)
 DOWNLOAD_FOLDER = "/tmp"
@@ -29,28 +29,6 @@ def generate_sop_doc(data):
     style = doc.styles['Normal']
     style.font.name = 'Calibri'
     style.font.size = Pt(11)
-
-    def format_paragraph_with_prefix(text, indent):
-        match = re.match(r"^([A-Za-z0-9ivxIVX]+[.)])\s+(.*)", text)
-        para = doc.add_paragraph()
-        if match:
-            prefix = match.group(1)
-            remainder = match.group(2)
-            run1 = para.add_run(prefix)
-            run1.bold = True
-            run1.font.size = Pt(11)
-            run1.font.color.rgb = RGBColor(0, 0, 0)
-            run2 = para.add_run(f" {remainder}")
-            run2.font.size = Pt(11)
-            run2.font.color.rgb = RGBColor(0, 0, 0)
-        else:
-            run = para.add_run(text)
-            run.font.size = Pt(11)
-            run.font.color.rgb = RGBColor(0, 0, 0)
-        para.paragraph_format.left_indent = Inches(indent)
-        para.paragraph_format.space_before = Pt(0)
-        para.paragraph_format.space_after = Pt(0)
-        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
     def hr():
         para = doc.add_paragraph()
@@ -89,16 +67,49 @@ def generate_sop_doc(data):
         para.paragraph_format.space_after = Pt(6)
         para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
+    def formatted_bullet(text, indent=0.5):
+        match = re.match(r"^([A-Za-z0-9ivxIVX]+[.)])\s+(.*)", text)
+        para = doc.add_paragraph()
+        para.paragraph_format.left_indent = Inches(indent)
+        para.paragraph_format.space_before = Pt(0)
+        para.paragraph_format.space_after = Pt(0)
+        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+        if match:
+            prefix = match.group(1)
+            remainder = match.group(2)
+            run1 = para.add_run(prefix)
+            run1.bold = True
+            run1.font.size = Pt(11)
+            run1.font.color.rgb = RGBColor(0, 0, 0)
+            run2 = para.add_run(f" {remainder}")
+            run2.font.size = Pt(11)
+            run2.font.color.rgb = RGBColor(0, 0, 0)
+        else:
+            run = para.add_run(text)
+            run.font.size = Pt(11)
+            run.font.color.rgb = RGBColor(0, 0, 0)
+
+    heading_paragraph(f"SOP Title: {data.get('title', 'Generated SOP')}", size=18)
+    paragraph(f"Prepared By: {data.get('prepared_by', 'Name')}")
+    paragraph(f"Approved By: {data.get('approved_by', 'Approver')}")
+    paragraph(f"Revision Date: {data.get('revision_date', 'Date')}")
+    hr()
+
     sections = data.get("sections", [])
     for i, section in enumerate(sections):
         heading_paragraph(section["heading"])
-        for item in section.get("content", []):
+        skip_indices = set()
+        for idx, item in enumerate(section.get("content", [])):
+            if idx in skip_indices:
+                continue
+            if not item.get("text"):
+                continue
             t = item["type"]
             text = item["text"]
             indent = item.get("indent", 0.5 if t == "bullet" else 0.45 if t == "dash" else 0.9)
 
             if t in ["bullet", "dash", "sub_bullet"]:
-                format_paragraph_with_prefix(text, indent)
+                formatted_bullet(text, indent)
             elif t == "text":
                 paragraph(text, bold=item.get("bold", False))
 
