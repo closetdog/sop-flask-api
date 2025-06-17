@@ -103,35 +103,54 @@ def generate_sop_doc(data):
         if sec_data.get("type") == "table":
             add_table(sec_data)
         else:
+            last_type = None
             for item in sec_data.get("content", []):
                 text = item.get("text", "")
                 t = item.get("type", "text")
 
+                if last_type and last_type != t:
+                    add_paragraph("", spacing=1.5)  # double space between groups
+                last_type = t
+
                 if t == "labelled" and ":" in text:
                     label, _, value = text.partition(":")
+                    label = label.strip()
+                    value = value.strip()
                     indent_level = 0
-                    if label.strip() in ["A", "B", "C", "D"]:
+                    if label in ["A", "B", "C", "D"]:
                         indent_level = 1
-                    elif label.strip() in ["1"]:
+                    elif label in ["1"]:
                         indent_level = 2
-                    elif label.strip() in ["a", "b", "c"]:
+                    elif label in ["a", "b", "c"]:
                         indent_level = 3
-                    elif label.strip() == "1":
+                    elif label == "1":
                         indent_level = 4
                     indent_inches = 0.5 + 0.25 * indent_level
                     para = doc.add_paragraph()
-                    run1 = para.add_run(f"{label.strip()}. ")
+                    run1 = para.add_run(f"{label}: ")
                     run1.bold = True
                     run1.font.size = Pt(11)
                     run1.font.color.rgb = RGBColor(0, 0, 0)
-                    run2 = para.add_run(value.strip())
+                    run2 = para.add_run(value)
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
                     para.paragraph_format.left_indent = Inches(indent_inches)
                 elif t == "bullet":
-                    add_paragraph(f"\u2022 {text}", bold=True, indent=0.5)
+                    para = doc.add_paragraph()
+                    run = para.add_run("• ")
+                    run.bold = True
+                    run.font.size = Pt(11)
+                    run.font.color.rgb = RGBColor(0, 0, 0)
+                    para.add_run(text).font.color.rgb = RGBColor(0, 0, 0)
+                    para.paragraph_format.left_indent = Inches(0.5)
                 elif t == "sub_bullet":
-                    add_paragraph(f"\u2022 {text}", bold=True, indent=0.75)
+                    para = doc.add_paragraph()
+                    run = para.add_run("• ")
+                    run.bold = True
+                    run.font.size = Pt(11)
+                    run.font.color.rgb = RGBColor(0, 0, 0)
+                    para.add_run(text).font.color.rgb = RGBColor(0, 0, 0)
+                    para.paragraph_format.left_indent = Inches(0.75)
                 else:
                     add_paragraph(text)
 
