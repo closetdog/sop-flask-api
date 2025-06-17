@@ -76,6 +76,7 @@ def generate_sop_doc(data):
             run = cell.paragraphs[0].add_run(headers[i])
             run.bold = True
             run.underline = True
+            cell.paragraphs[0].paragraph_format.space_after = Pt(0)
             table.columns[i].width = widths[i]
 
         for row in section_data.get("content", []):
@@ -83,6 +84,7 @@ def generate_sop_doc(data):
             parts = row.get("text", "|||").split("|||")
             for i in range(min(3, len(parts))):
                 cells[i].text = parts[i].strip()
+                cells[i].paragraphs[0].paragraph_format.space_after = Pt(0)
 
     sop_title = data.get('title', 'Generated SOP')
     sop_id = data.get('sop_id', 'SOP-000')
@@ -126,7 +128,7 @@ def generate_sop_doc(data):
                     label = label.strip()
                     value = value.strip()
                     indent_level = indent_map.get(label, 0)
-                    indent = 0.5 + 0.25 * indent_level
+                    indent = 0.25 + 0.25 * indent_level
                     para = doc.add_paragraph()
                     para.paragraph_format.space_after = Pt(0)
                     run1 = para.add_run(f"{label}: ")
