@@ -52,6 +52,8 @@ def generate_sop_doc(data):
 
     def add_paragraph(text, bold=False, size=11, spacing=1.5, indent=None):
         para = doc.add_paragraph()
+    para.paragraph_format.space_before = Pt(0)
+    para.paragraph_format.space_after = Pt(0)
         run = para.add_run(text)
         run.bold = bold
         run.font.size = Pt(size)
