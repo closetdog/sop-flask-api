@@ -61,6 +61,25 @@ def generate_sop_doc(data):
             para.paragraph_format.left_indent = Inches(indent)
         return para
 
+    def add_table(section_data):
+        table = doc.add_table(rows=1, cols=3)
+        table.autofit = False
+        widths = [Inches(1.5), Inches(2.0), Inches(2.5)]
+        headers = ["Date", "Revised By", "Description"]
+
+        hdr_cells = table.rows[0].cells
+        for i, cell in enumerate(hdr_cells):
+            run = cell.paragraphs[0].add_run(headers[i])
+            run.bold = True
+            run.underline = True
+            table.columns[i].width = widths[i]
+
+        for row in section_data.get("content", []):
+            cells = table.add_row().cells
+            parts = row.get("text", "|||").split("|||")
+            for i in range(min(3, len(parts))):
+                cells[i].text = parts[i].strip()
+
     sop_title = data.get('title', 'Generated SOP')
     sop_id = data.get('sop_id', 'SOP-000')
     prepared_by = data.get('prepared_by', 'Name')
@@ -76,21 +95,35 @@ def generate_sop_doc(data):
 
     sections_data = data.get("sections", [])
     for i, section in enumerate(sections_data):
-        add_paragraph(section["heading"], bold=True)
-        for item in section.get("content", []):
-            text = item.get("text", "")
-            t = item.get("type", "text")
-            indent_level = item.get("indent_level", 0)
-            indent_inches = 0.5 + 0.25 * indent_level if indent_level > 0 else None
+        heading = section.get("heading", "")
+        if heading:
+            add_paragraph(heading, bold=True)
 
-            if t == "bullet":
-                add_paragraph(f"\u2022 {text}", bold=True, indent=indent_inches)
-            elif t == "sub_bullet":
-                add_paragraph(f"\u2022 {text}", bold=True, indent=indent_inches)
-            elif t == "table_row":
-                pass  # Placeholder for table logic
-            else:
-                add_paragraph(text)
+        if section.get("type") == "table":
+            add_table(section)
+        else:
+            for item in section.get("content", []):
+                text = item.get("text", "")
+                t = item.get("type", "text")
+                indent_level = item.get("indent_level", 0)
+                indent_inches = 0.5 + 0.25 * indent_level if indent_level > 0 else None
+
+                if t == "bullet":
+                    add_paragraph(f"\u2022 {text}", bold=True, indent=indent_inches)
+                elif t == "sub_bullet":
+                    add_paragraph(f"\u2022 {text}", bold=True, indent=indent_inches)
+                elif t == "labelled":
+                    label, _, value = text.partition(":")
+                    para = doc.add_paragraph()
+                    run1 = para.add_run(f"{label.strip()}: ")
+                    run1.bold = True
+                    run1.font.size = Pt(11)
+                    run1.font.color.rgb = RGBColor(0, 0, 0)
+                    run2 = para.add_run(value.strip())
+                    run2.font.size = Pt(11)
+                    run2.font.color.rgb = RGBColor(0, 0, 0)
+                else:
+                    add_paragraph(text)
 
         if i < len(sections_data) - 1:
             hr()
@@ -101,13 +134,13 @@ def generate_sop_doc(data):
     footer_para.text = f"{sop_title}\n{sop_id}"
     footer_para.runs[0].font.size = Pt(10)
     footer_para.runs[0].font.color.rgb = RGBColor(0, 0, 0)
-    footer_para.alignment = 0  # Left
+    footer_para.alignment = 0
 
     right_footer = footer.add_paragraph()
     run = right_footer.add_run(f"Revision Date: {revision_date}")
     run.font.size = Pt(10)
     run.font.color.rgb = RGBColor(0, 0, 0)
-    right_footer.alignment = 2  # Right
+    right_footer.alignment = 2
 
     filename = f"sop_{uuid.uuid4().hex}.docx"
     filepath = os.path.join(DOWNLOAD_FOLDER, filename)
