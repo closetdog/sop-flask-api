@@ -88,7 +88,7 @@ def generate_sop_doc(data):
     approved_by = data.get('approved_by', 'Approver')
     revision_date = data.get('revision_date', 'Date')
 
-    add_paragraph(f"SOP Title: {sop_title}", bold=True, size=18)
+    add_paragraph(f"SOP Title: {sop_title}", bold=True, size=18, spacing=1.0)
     add_paragraph(f"SOP ID: {sop_id}", spacing=1.5)
     add_paragraph(f"Prepared By: {prepared_by}", spacing=1.5)
     add_paragraph(f"Approved By: {approved_by}", spacing=1.5)
