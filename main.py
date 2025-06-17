@@ -129,7 +129,7 @@ def generate_sop_doc(data):
                     add_paragraph("", spacing=1.5)
                 last_type = t
 
-                if t == "labelled" and ":" in text and 'Step-by-Step Instructions' in heading:
+                if t == "labelled" and 'Step-by-Step Instructions' in heading:
                     label, _, value = text.partition(":")
                     label = label.strip().replace("*", "")
                     value = value.strip()
@@ -163,6 +163,21 @@ def generate_sop_doc(data):
                     run.font.color.rgb = RGBColor(0, 0, 0)
                     para.add_run(text).font.color.rgb = RGBColor(0, 0, 0)
                     para.paragraph_format.left_indent = Inches(0.75)
+                elif t == "labelled" and ":" in text:
+                    label, _, value = text.partition(":")
+                    label = label.strip().replace("*", "")
+                    value = value.strip()
+                    para = doc.add_paragraph()
+                    para.paragraph_format.space_before = Pt(0)
+                    para.paragraph_format.space_after = Pt(0)
+                    run1 = para.add_run(f"{label}: ")
+                    run1.bold = True
+                    run1.font.size = Pt(11)
+                    run1.font.color.rgb = RGBColor(0, 0, 0)
+                    run2 = para.add_run(value)
+                    run2.font.size = Pt(11)
+                    run2.font.color.rgb = RGBColor(0, 0, 0)
+                    para.paragraph_format.line_spacing = 1.0 if label in ["Scope", "Role", "Output", "Interaction"] else 1.5
                 else:
                     add_paragraph(text)
 
