@@ -89,10 +89,10 @@ def generate_sop_doc(data):
     revision_date = data.get('revision_date', 'Date')
 
     add_paragraph(f"SOP Title: {sop_title}", bold=True, size=18, spacing=1.0)
-    add_paragraph(f"SOP ID: {sop_id}", spacing=1.5)
-    add_paragraph(f"Prepared By: {prepared_by}", spacing=1.5)
-    add_paragraph(f"Approved By: {approved_by}", spacing=1.5)
-    add_paragraph(f"Revision Date: {revision_date}", spacing=1.5)
+    add_paragraph(f"SOP ID: {sop_id}", spacing=1.0)
+    add_paragraph(f"Prepared By: {prepared_by}", spacing=1.0)
+    add_paragraph(f"Approved By: {approved_by}", spacing=1.0)
+    add_paragraph(f"Revision Date: {revision_date}", spacing=1.0)
     hr()
 
     indent_map = {
