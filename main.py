@@ -25,9 +25,13 @@ def download_file(filename):
 
 def generate_sop_doc(data):
     doc = Document()
-    style = doc.styles['Normal']
-    style.font.name = 'Calibri'
-    style.font.size = Pt(11)
+    sections = doc.sections[0]
+    sections.top_margin = Inches(1)
+    sections.bottom_margin = Inches(1)
+    sections.left_margin = Inches(1)
+    sections.right_margin = Inches(1)
+    doc.styles['Normal'].font.name = 'Calibri'
+    doc.styles['Normal'].font.size = Pt(11)
 
     def hr():
         para = doc.add_paragraph()
@@ -41,97 +45,45 @@ def generate_sop_doc(data):
         bottom.set(qn('w:color'), 'auto')
         pBdr.append(bottom)
         pPr.append(pBdr)
-        para.paragraph_format.space_before = Pt(0)
-        para.paragraph_format.space_after = Pt(0)
-        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+        para.paragraph_format.space_after = Pt(12)
 
-    def paragraph(text, bold=False, size=11):
+    def add_paragraph(text, bold=False, size=11, spacing=1.5):
         para = doc.add_paragraph()
         run = para.add_run(text)
-        if bold:
-            run.bold = True
+        run.bold = bold
         run.font.size = Pt(size)
         run.font.color.rgb = RGBColor(0, 0, 0)
-        para.paragraph_format.space_before = Pt(0)
-        para.paragraph_format.space_after = Pt(0)
-        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+        para.paragraph_format.line_spacing = spacing
+        return para
 
-    def heading_paragraph(text, size=14):
-        para = doc.add_paragraph()
-        run = para.add_run(text)
-        run.bold = True
-        run.font.size = Pt(size)
-        run.font.color.rgb = RGBColor(0, 0, 0)
-        para.paragraph_format.space_before = Pt(0)
-        para.paragraph_format.space_after = Pt(6)
-        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+    sop_title = data.get('title', 'Generated SOP')
+    sop_id = data.get('sop_id', 'SOP-000')
+    prepared_by = data.get('prepared_by', 'Name')
+    approved_by = data.get('approved_by', 'Approver')
+    revision_date = data.get('revision_date', 'Date')
 
-    def bullet(text, indent=0.5):
-        para = doc.add_paragraph(style='List Bullet')
-        para.add_run(text)
-        para.paragraph_format.left_indent = Inches(indent)
-        para.paragraph_format.space_before = Pt(0)
-        para.paragraph_format.space_after = Pt(0)
-        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-
-    def dash(text, indent=0.45):
-        para = doc.add_paragraph()
-        para.add_run(f"– {text}")
-        para.paragraph_format.left_indent = Inches(indent)
-        para.paragraph_format.space_before = Pt(0)
-        para.paragraph_format.space_after = Pt(0)
-        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-
-    def sub_bullet(text, indent=0.90):
-        para = doc.add_paragraph(style='List Bullet')
-        para.add_run(text)
-        para.paragraph_format.left_indent = Inches(indent)
-        para.paragraph_format.space_before = Pt(0)
-        para.paragraph_format.space_after = Pt(0)
-        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-
-    heading_paragraph(f"SOP Title: {data.get('title', 'Generated SOP')}", size=18)
-    paragraph(f"Prepared By: {data.get('prepared_by', 'Name')}")
-    paragraph(f"Approved By: {data.get('approved_by', 'Approver')}")
-    paragraph(f"Revision Date: {data.get('revision_date', 'Date')}")
+    add_paragraph(f"SOP Title: {sop_title}", bold=True, size=18)
+    add_paragraph(f"SOP ID: {sop_id}", bold=False)
+    add_paragraph(f"Prepared By: {prepared_by}", bold=False)
+    add_paragraph(f"Approved By: {approved_by}", bold=False)
+    add_paragraph(f"Revision Date: {revision_date}", bold=False)
     hr()
 
-    sections = data.get("sections", [])
-    for i, section in enumerate(sections):
-        heading_paragraph(section["heading"])
-        skip_indices = set()
-        for idx, item in enumerate(section.get("content", [])):
-            if idx in skip_indices:
-                continue
-            if not item.get("text"):
-                continue
-            t = item["type"]
-            text = item["text"]
-            indent = item.get("indent", 0.5 if t == "bullet" else 0.45 if t == "dash" else 0.9)
-
-            if t == "text" and any(text.lower().startswith(x) for x in ["process owner:", "roles:", "objective:", "scope:", "inputs:", "outputs:"]):
-                label, _, rest = text.partition(":")
-                para = doc.add_paragraph()
-                run1 = para.add_run(f"{label.strip()}:")
-                run1.bold = True
-                run1.font.size = Pt(11)
-                run1.font.color.rgb = RGBColor(0, 0, 0)
-                run2 = para.add_run(f" {rest.strip()}")
-                run2.font.size = Pt(11)
-                run2.font.color.rgb = RGBColor(0, 0, 0)
-                para.paragraph_format.space_before = Pt(0)
-                para.paragraph_format.space_after = Pt(6)
-                para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-            elif t == "bullet":
-                bullet(text, indent)
-            elif t == "dash":
-                dash(text, indent)
+    sections_data = data.get("sections", [])
+    for i, section in enumerate(sections_data):
+        add_paragraph(section["heading"], bold=True)
+        for item in section.get("content", []):
+            text = item.get("text", "")
+            t = item.get("type", "text")
+            if t == "bullet":
+                para = doc.add_paragraph(style='List Bullet')
+                para.add_run(text).font.color.rgb = RGBColor(0, 0, 0)
             elif t == "sub_bullet":
-                sub_bullet(text, indent)
-            elif t == "text":
-                paragraph(text, bold=item.get("bold", False))
-
-        if i < len(sections) - 1:
+                para = doc.add_paragraph(style='List Bullet 2')
+                para.add_run(text).font.color.rgb = RGBColor(0, 0, 0)
+            else:
+                add_paragraph(text)
+        if i < len(sections_data) - 1:
             hr()
 
     filename = f"sop_{uuid.uuid4().hex}.docx"
@@ -141,16 +93,12 @@ def generate_sop_doc(data):
 
 @app.route("/generate", methods=["POST"])
 def generate():
-    print("🔵 Received request to /generate")
     try:
         data = request.json
-        print("🟢 JSON received:", data)
         filename = generate_sop_doc(data)
-        print("✅ Document saved as:", filename)
         link = f"https://sop-flask-api.onrender.com/download/{filename}"
         return jsonify({"download_link": link})
     except Exception as e:
-        print("❌ Error:", e)
         return {"error": str(e)}, 500
 
 if __name__ == "__main__":
