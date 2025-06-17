@@ -32,6 +32,7 @@ def generate_sop_doc(data):
     doc_section.left_margin = Inches(1)
     doc_section.right_margin = Inches(1)
     doc_section.footer_distance = Inches(0.5)
+    doc_section.different_first_page_header_footer = True
 
     style = doc.styles['Normal']
     style.font.name = 'Calibri'
@@ -87,7 +88,7 @@ def generate_sop_doc(data):
     revision_date = data.get('revision_date', 'Date')
 
     add_paragraph(f"SOP Title: {sop_title}", bold=True, size=18)
-    add_paragraph(f"SOP ID: {sop_id}")
+    add_paragraph(f"SOP ID: {sop_id}", spacing=1.5)
     add_paragraph(f"Prepared By: {prepared_by}", spacing=1.5)
     add_paragraph(f"Approved By: {approved_by}", spacing=1.5)
     add_paragraph(f"Revision Date: {revision_date}", spacing=1.5)
@@ -105,23 +106,32 @@ def generate_sop_doc(data):
             for item in sec_data.get("content", []):
                 text = item.get("text", "")
                 t = item.get("type", "text")
-                indent_level = item.get("indent_level", 0)
-                indent_inches = 0.5 + 0.25 * indent_level if indent_level > 0 else None
 
-                if t == "bullet":
-                    add_paragraph(f"\u2022 {text}", bold=True, indent=indent_inches)
-                elif t == "sub_bullet":
-                    add_paragraph(f"\u2022 {text}", bold=True, indent=indent_inches)
-                elif t == "labelled":
+                if t == "labelled" and ":" in text:
                     label, _, value = text.partition(":")
+                    indent_level = 0
+                    if label.strip() in ["A", "B", "C", "D"]:
+                        indent_level = 1
+                    elif label.strip() in ["1"]:
+                        indent_level = 2
+                    elif label.strip() in ["a", "b", "c"]:
+                        indent_level = 3
+                    elif label.strip() == "1":
+                        indent_level = 4
+                    indent_inches = 0.5 + 0.25 * indent_level
                     para = doc.add_paragraph()
-                    run1 = para.add_run(f"{label.strip()}: ")
+                    run1 = para.add_run(f"{label.strip()}. ")
                     run1.bold = True
                     run1.font.size = Pt(11)
                     run1.font.color.rgb = RGBColor(0, 0, 0)
                     run2 = para.add_run(value.strip())
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
+                    para.paragraph_format.left_indent = Inches(indent_inches)
+                elif t == "bullet":
+                    add_paragraph(f"\u2022 {text}", bold=True, indent=0.5)
+                elif t == "sub_bullet":
+                    add_paragraph(f"\u2022 {text}", bold=True, indent=0.75)
                 else:
                     add_paragraph(text)
 
