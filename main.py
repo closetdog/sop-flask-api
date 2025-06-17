@@ -37,7 +37,7 @@ def generate_sop_doc(data):
     style.font.name = 'Calibri'
     style.font.size = Pt(11)
 
-    def hr():
+def hr():
     para = doc.add_paragraph()
     para.paragraph_format.space_before = Pt(0)
     para.paragraph_format.space_after = Pt(0)
