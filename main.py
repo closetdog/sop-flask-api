@@ -50,7 +50,7 @@ def generate_sop_doc(data):
         pBdr.append(bottom)
         pPr.append(pBdr)
 
-    def add_paragraph(text, bold=False, size=11, spacing=1.5, indent=None):
+def add_paragraph(text, bold=False, size=11, spacing=1.5, indent=None):
     para = doc.add_paragraph()
     para.paragraph_format.space_before = Pt(0)
     para.paragraph_format.space_after = Pt(0)
