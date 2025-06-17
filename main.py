@@ -50,28 +50,18 @@ def generate_sop_doc(data):
         pBdr.append(bottom)
         pPr.append(pBdr)
 
-def add_paragraph(text, bold=False, size=11, spacing=1.5, indent=None):
-    para = doc.add_paragraph()
-    para.paragraph_format.space_before = Pt(0)
-    para.paragraph_format.space_after = Pt(0)
-    run = para.add_run(text)
-    run.bold = bold
-    run.font.size = Pt(size)
-    run.font.color.rgb = RGBColor(0, 0, 0)
-    para.paragraph_format.line_spacing = spacing
-    if indent is not None:
-        para.paragraph_format.left_indent = Inches(indent)
-    return para
-    para.paragraph_format.space_before = Pt(0)
-    para.paragraph_format.space_after = Pt(0)
-    run = para.add_run(text)
-    run.bold = bold
-    run.font.size = Pt(size)
-    run.font.color.rgb = RGBColor(0, 0, 0)
-    para.paragraph_format.line_spacing = spacing
-    if indent is not None:
-        para.paragraph_format.left_indent = Inches(indent)
-    return para
+    def add_paragraph(text, bold=False, size=11, spacing=1.5, indent=None):
+        para = doc.add_paragraph()
+        para.paragraph_format.space_before = Pt(0)
+        para.paragraph_format.space_after = Pt(0)
+        run = para.add_run(text)
+        run.bold = bold
+        run.font.size = Pt(size)
+        run.font.color.rgb = RGBColor(0, 0, 0)
+        para.paragraph_format.line_spacing = spacing
+        if indent is not None:
+            para.paragraph_format.left_indent = Inches(indent)
+        return para
 
     def add_table(section_data):
         table = doc.add_table(rows=1, cols=3)
@@ -166,10 +156,9 @@ def add_paragraph(text, bold=False, size=11, spacing=1.5, indent=None):
         if i < len(sections_data) - 1:
             hr()
 
-    # Footer (Page 2+ only)
     footer = doc.sections[0].footer
     footer_para = footer.add_paragraph()
-    run = footer_para.add_run(f"{sop_title}\n{sop_id}")
+    run = footer_para.add_run(f"{sop_title}\\n{sop_id}")
     run.font.size = Pt(10)
     run.font.color.rgb = RGBColor(0, 0, 0)
     footer_para.alignment = 0
