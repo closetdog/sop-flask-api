@@ -42,7 +42,7 @@ def generate_sop_doc(data):
     para.paragraph_format.space_before = Pt(0)
     para.paragraph_format.space_after = Pt(0)
     p = para._p
-        pPr = p.get_or_add_pPr()
+    pPr = p.get_or_add_pPr()
         pBdr = OxmlElement('w:pBdr')
         bottom = OxmlElement('w:bottom')
         bottom.set(qn('w:val'), 'single')
