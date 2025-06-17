@@ -4,7 +4,6 @@ from docx.shared import Pt, Inches, RGBColor
 from docx.oxml.shared import qn
 from docx.oxml import OxmlElement
 from docx.enum.text import WD_LINE_SPACING
-from docx.oxml.ns import qn as ns_qn
 import tempfile
 import os
 import uuid
@@ -94,6 +93,14 @@ def generate_sop_doc(data):
     add_paragraph(f"Revision Date: {revision_date}", spacing=1.5)
     hr()
 
+    step_hierarchy = {
+        0: ["1."],
+        1: ["A."],
+        2: ["1."],
+        3: ["a."],
+        4: ["1."]
+    }
+
     sections_data = data.get("sections", [])
     for i, sec_data in enumerate(sections_data):
         heading = sec_data.get("heading", "")
@@ -109,32 +116,28 @@ def generate_sop_doc(data):
                 t = item.get("type", "text")
 
                 if last_type and last_type != t:
-                    add_paragraph("", spacing=1.5)  # double space between groups
+                    add_paragraph("", spacing=1.5)
                 last_type = t
 
                 if t == "labelled" and ":" in text:
                     label, _, value = text.partition(":")
                     label = label.strip()
                     value = value.strip()
-                    indent_level = 0
-                    if label in ["A", "B", "C", "D"]:
-                        indent_level = 1
-                    elif label in ["1"]:
-                        indent_level = 2
-                    elif label in ["a", "b", "c"]:
-                        indent_level = 3
-                    elif label == "1":
-                        indent_level = 4
-                    indent_inches = 0.5 + 0.25 * indent_level
+                    level = 0
+                    for k, v in step_hierarchy.items():
+                        if label in v:
+                            level = k
+                            break
+                    indent = 0.5 + 0.25 * level
                     para = doc.add_paragraph()
-                    run1 = para.add_run(f"{label}: ")
+                    run1 = para.add_run(f"{label} ")
                     run1.bold = True
                     run1.font.size = Pt(11)
                     run1.font.color.rgb = RGBColor(0, 0, 0)
                     run2 = para.add_run(value)
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
-                    para.paragraph_format.left_indent = Inches(indent_inches)
+                    para.paragraph_format.left_indent = Inches(indent)
                 elif t == "bullet":
                     para = doc.add_paragraph()
                     run = para.add_run("• ")
