@@ -125,7 +125,7 @@ def generate_sop_doc(data):
                     add_paragraph("", spacing=1.5)
                 last_type = t
 
-                if t == "labelled" and ":" in text:
+                if t == "labelled" and ":" in text and 'Step-by-Step Instructions' in heading:
                     label, _, value = text.partition(":")
                     label = label.strip().replace("*", "")
                     value = value.strip()
