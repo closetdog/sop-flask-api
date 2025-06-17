@@ -121,7 +121,7 @@ def generate_sop_doc(data):
                 text = item.get("text", "")
                 t = item.get("type", "text")
 
-                if last_type and last_type != t:
+                if last_type and last_type != t and label not in ["1.", "A.", "a."]:
                     add_paragraph("", spacing=1.5)
                 last_type = t
 
