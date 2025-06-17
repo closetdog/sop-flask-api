@@ -55,6 +55,16 @@ def generate_sop_doc(data):
     para.paragraph_format.space_before = Pt(0)
     para.paragraph_format.space_after = Pt(0)
     run = para.add_run(text)
+    run.bold = bold
+    run.font.size = Pt(size)
+    run.font.color.rgb = RGBColor(0, 0, 0)
+    para.paragraph_format.line_spacing = spacing
+    if indent is not None:
+        para.paragraph_format.left_indent = Inches(indent)
+    return para
+    para.paragraph_format.space_before = Pt(0)
+    para.paragraph_format.space_after = Pt(0)
+    run = para.add_run(text)
         run.bold = bold
         run.font.size = Pt(size)
         run.font.color.rgb = RGBColor(0, 0, 0)
