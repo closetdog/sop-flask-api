@@ -93,12 +93,10 @@ def generate_sop_doc(data):
     add_paragraph(f"Revision Date: {revision_date}", spacing=1.5)
     hr()
 
-    step_hierarchy = {
-        0: ["1."],
-        1: ["A."],
-        2: ["1."],
-        3: ["a."],
-        4: ["1."]
+    indent_map = {
+        "1.": 0,
+        "A.": 1,
+        "a.": 2
     }
 
     sections_data = data.get("sections", [])
@@ -123,14 +121,10 @@ def generate_sop_doc(data):
                     label, _, value = text.partition(":")
                     label = label.strip()
                     value = value.strip()
-                    level = 0
-                    for k, v in step_hierarchy.items():
-                        if label in v:
-                            level = k
-                            break
-                    indent = 0.5 + 0.25 * level
+                    indent_level = indent_map.get(label, 0)
+                    indent = 0.5 + 0.25 * indent_level
                     para = doc.add_paragraph()
-                    run1 = para.add_run(f"{label} ")
+                    run1 = para.add_run(f"{label}: ")
                     run1.bold = True
                     run1.font.size = Pt(11)
                     run1.font.color.rgb = RGBColor(0, 0, 0)
