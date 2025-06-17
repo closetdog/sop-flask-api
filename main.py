@@ -43,14 +43,14 @@ def generate_sop_doc(data):
     para.paragraph_format.space_after = Pt(0)
     p = para._p
     pPr = p.get_or_add_pPr()
-        pBdr = OxmlElement('w:pBdr')
-        bottom = OxmlElement('w:bottom')
-        bottom.set(qn('w:val'), 'single')
-        bottom.set(qn('w:sz'), '6')
-        bottom.set(qn('w:space'), '0')
-        bottom.set(qn('w:color'), 'auto')
-        pBdr.append(bottom)
-        pPr.append(pBdr)
+    pBdr = OxmlElement('w:pBdr')
+    bottom = OxmlElement('w:bottom')
+    bottom.set(qn('w:val'), 'single')
+    bottom.set(qn('w:sz'), '6')
+    bottom.set(qn('w:space'), '0')
+    bottom.set(qn('w:color'), 'auto')
+    pBdr.append(bottom)
+    pPr.append(pBdr)
 
     def add_paragraph(text, bold=False, size=11, spacing=1.5, indent=None):
         para = doc.add_paragraph()
