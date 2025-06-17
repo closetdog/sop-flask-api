@@ -26,12 +26,12 @@ def download_file(filename):
 
 def generate_sop_doc(data):
     doc = Document()
-    section = doc.sections[0]
-    section.top_margin = Inches(1)
-    section.bottom_margin = Inches(1)
-    section.left_margin = Inches(1)
-    section.right_margin = Inches(1)
-    section.footer_distance = Inches(0.5)
+    doc_section = doc.sections[0]
+    doc_section.top_margin = Inches(1)
+    doc_section.bottom_margin = Inches(1)
+    doc_section.left_margin = Inches(1)
+    doc_section.right_margin = Inches(1)
+    doc_section.footer_distance = Inches(0.5)
 
     style = doc.styles['Normal']
     style.font.name = 'Calibri'
@@ -94,15 +94,15 @@ def generate_sop_doc(data):
     hr()
 
     sections_data = data.get("sections", [])
-    for i, section in enumerate(sections_data):
-        heading = section.get("heading", "")
+    for i, sec_data in enumerate(sections_data):
+        heading = sec_data.get("heading", "")
         if heading:
             add_paragraph(heading, bold=True)
 
-        if section.get("type") == "table":
-            add_table(section)
+        if sec_data.get("type") == "table":
+            add_table(sec_data)
         else:
-            for item in section.get("content", []):
+            for item in sec_data.get("content", []):
                 text = item.get("text", "")
                 t = item.get("type", "text")
                 indent_level = item.get("indent_level", 0)
@@ -129,7 +129,7 @@ def generate_sop_doc(data):
             hr()
 
     # Footer (Page 2+ only)
-    footer = section.footer
+    footer = doc.sections[0].footer
     footer_para = footer.paragraphs[0]
     run = footer_para.add_run(f"{sop_title}\n{sop_id}")
     run.font.size = Pt(10)
