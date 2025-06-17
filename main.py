@@ -134,6 +134,7 @@ def generate_sop_doc(data):
                     run1.font.size = Pt(11)
                     run1.font.color.rgb = RGBColor(0, 0, 0)
                     run2 = para.add_run(value)
+                    para.paragraph_format.line_spacing = 1.5
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
                     para.paragraph_format.left_indent = Inches(indent)
