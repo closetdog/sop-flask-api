@@ -128,6 +128,7 @@ def generate_sop_doc(data):
                     indent_level = indent_map.get(label, 0)
                     indent = 0.5 + 0.25 * indent_level
                     para = doc.add_paragraph()
+                    para.paragraph_format.space_after = Pt(0)
                     run1 = para.add_run(f"{label}: ")
                     run1.bold = True
                     run1.font.size = Pt(11)
