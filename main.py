@@ -118,6 +118,10 @@ def generate_sop_doc(data):
         else:
             last_type = None
             for item in sec_data.get("content", []):
+                label = ""
+                if item.get("type") == "labelled" and ":" in item.get("text", ""):
+                    label, _, _ = item["text"].partition(":")
+                    label = label.strip().replace("*", "")
                 text = item.get("text", "")
                 t = item.get("type", "text")
 
