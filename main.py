@@ -4,6 +4,7 @@ from docx.shared import Pt, Inches, RGBColor
 from docx.oxml.shared import qn
 from docx.oxml import OxmlElement
 from docx.enum.text import WD_LINE_SPACING
+from docx.oxml.ns import qn as ns_qn
 import tempfile
 import os
 import uuid
@@ -25,13 +26,16 @@ def download_file(filename):
 
 def generate_sop_doc(data):
     doc = Document()
-    sections = doc.sections[0]
-    sections.top_margin = Inches(1)
-    sections.bottom_margin = Inches(1)
-    sections.left_margin = Inches(1)
-    sections.right_margin = Inches(1)
-    doc.styles['Normal'].font.name = 'Calibri'
-    doc.styles['Normal'].font.size = Pt(11)
+    section = doc.sections[0]
+    section.top_margin = Inches(1)
+    section.bottom_margin = Inches(1)
+    section.left_margin = Inches(1)
+    section.right_margin = Inches(1)
+    section.footer_distance = Inches(0.5)
+
+    style = doc.styles['Normal']
+    style.font.name = 'Calibri'
+    style.font.size = Pt(11)
 
     def hr():
         para = doc.add_paragraph()
@@ -45,15 +49,16 @@ def generate_sop_doc(data):
         bottom.set(qn('w:color'), 'auto')
         pBdr.append(bottom)
         pPr.append(pBdr)
-        para.paragraph_format.space_after = Pt(12)
 
-    def add_paragraph(text, bold=False, size=11, spacing=1.5):
+    def add_paragraph(text, bold=False, size=11, spacing=1.5, indent=None):
         para = doc.add_paragraph()
         run = para.add_run(text)
         run.bold = bold
         run.font.size = Pt(size)
         run.font.color.rgb = RGBColor(0, 0, 0)
         para.paragraph_format.line_spacing = spacing
+        if indent is not None:
+            para.paragraph_format.left_indent = Inches(indent)
         return para
 
     sop_title = data.get('title', 'Generated SOP')
@@ -63,10 +68,10 @@ def generate_sop_doc(data):
     revision_date = data.get('revision_date', 'Date')
 
     add_paragraph(f"SOP Title: {sop_title}", bold=True, size=18)
-    add_paragraph(f"SOP ID: {sop_id}", bold=False)
-    add_paragraph(f"Prepared By: {prepared_by}", bold=False)
-    add_paragraph(f"Approved By: {approved_by}", bold=False)
-    add_paragraph(f"Revision Date: {revision_date}", bold=False)
+    add_paragraph(f"SOP ID: {sop_id}")
+    add_paragraph(f"Prepared By: {prepared_by}", spacing=1.5)
+    add_paragraph(f"Approved By: {approved_by}", spacing=1.5)
+    add_paragraph(f"Revision Date: {revision_date}", spacing=1.5)
     hr()
 
     sections_data = data.get("sections", [])
@@ -75,16 +80,34 @@ def generate_sop_doc(data):
         for item in section.get("content", []):
             text = item.get("text", "")
             t = item.get("type", "text")
+            indent_level = item.get("indent_level", 0)
+            indent_inches = 0.5 + 0.25 * indent_level if indent_level > 0 else None
+
             if t == "bullet":
-                para = doc.add_paragraph(style='List Bullet')
-                para.add_run(text).font.color.rgb = RGBColor(0, 0, 0)
+                add_paragraph(f"\u2022 {text}", bold=True, indent=indent_inches)
             elif t == "sub_bullet":
-                para = doc.add_paragraph(style='List Bullet 2')
-                para.add_run(text).font.color.rgb = RGBColor(0, 0, 0)
+                add_paragraph(f"\u2022 {text}", bold=True, indent=indent_inches)
+            elif t == "table_row":
+                pass  # Placeholder for table logic
             else:
                 add_paragraph(text)
+
         if i < len(sections_data) - 1:
             hr()
+
+    # Footer (Page 2+ only)
+    footer = section.footer
+    footer_para = footer.paragraphs[0]
+    footer_para.text = f"{sop_title}\n{sop_id}"
+    footer_para.runs[0].font.size = Pt(10)
+    footer_para.runs[0].font.color.rgb = RGBColor(0, 0, 0)
+    footer_para.alignment = 0  # Left
+
+    right_footer = footer.add_paragraph()
+    run = right_footer.add_run(f"Revision Date: {revision_date}")
+    run.font.size = Pt(10)
+    run.font.color.rgb = RGBColor(0, 0, 0)
+    right_footer.alignment = 2  # Right
 
     filename = f"sop_{uuid.uuid4().hex}.docx"
     filepath = os.path.join(DOWNLOAD_FOLDER, filename)
