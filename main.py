@@ -38,7 +38,9 @@ def generate_sop_doc(data):
     style.font.size = Pt(11)
 
     def hr():
-        para = doc.add_paragraph()
+    para = doc.add_paragraph()
+    para.paragraph_format.space_before = Pt(0)
+    para.paragraph_format.space_after = Pt(0)
         p = para._p
         pPr = p.get_or_add_pPr()
         pBdr = OxmlElement('w:pBdr')
@@ -89,7 +91,7 @@ def generate_sop_doc(data):
     revision_date = data.get('revision_date', 'Date')
 
     add_paragraph(f"SOP Title: {sop_title}", bold=True, size=18, spacing=1.0)
-    add_paragraph(f"SOP ID: {sop_id}", spacing=1.0)
+    add_paragraph(f"SOP ID: {sop_id}", spacing=1.5)
     add_paragraph(f"Prepared By: {prepared_by}", spacing=1.0)
     add_paragraph(f"Approved By: {approved_by}", spacing=1.0)
     add_paragraph(f"Revision Date: {revision_date}", spacing=1.0)
