@@ -125,7 +125,7 @@ def generate_sop_doc(data):
 
                 if t == "labelled" and ":" in text:
                     label, _, value = text.partition(":")
-                    label = label.strip()
+                    label = label.strip().replace("*", "")
                     value = value.strip()
                     indent_level = indent_map.get(label, 0)
                     indent = 0.25 + 0.25 * indent_level
