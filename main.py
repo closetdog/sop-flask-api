@@ -99,7 +99,7 @@ def generate_sop_doc(data):
     add_paragraph(f"Revision Date: {revision_date}", spacing=1.0)
     hr()
 
-    indent_map = {
+    label_to_indent = {
         "1.": 0,
         "A.": 1,
         "1..": 2,
@@ -129,7 +129,7 @@ def generate_sop_doc(data):
                     label, _, value = text.partition(":")
                     label = label.strip().replace("*", "")
                     value = value.strip()
-                    indent_level = list(indent_map.values())[min(len(indent_map) - 1, list(indent_map.keys()).index(label))] if label in indent_map else 0
+                    indent_level = label_to_indent.get(label, 0)
                     indent = 0.25 + 0.25 * indent_level
                     para = doc.add_paragraph()
                     para.paragraph_format.space_before = Pt(0)
