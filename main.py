@@ -130,7 +130,7 @@ def generate_sop_doc(data):
 
     # Footer (Page 2+ only)
     footer = doc.sections[0].footer
-    footer_para = footer.paragraphs[0]
+    footer_para = footer.add_paragraph()
     run = footer_para.add_run(f"{sop_title}\n{sop_id}")
     run.font.size = Pt(10)
     run.font.color.rgb = RGBColor(0, 0, 0)
