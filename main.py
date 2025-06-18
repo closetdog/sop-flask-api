@@ -129,10 +129,7 @@ def generate_sop_doc(data):
                 if item.get("type") == "labelled" and ":" in item.get("text", ""):
                     label, _, _ = item["text"].partition(":")
                     label = label.strip().replace("*", "")
-                    if label.endswith("."):
-                        label = label[:-1]
-                    if label.endswith("."):
-                        label = label[:-1]
+                    label = label.rstrip(".")
                 text = item.get("text", "")
                 t = item.get("type", "text")
 
@@ -143,7 +140,7 @@ def generate_sop_doc(data):
                 if t == "labelled" and 'Step-by-Step Instructions' in heading:
                     label, _, value = text.partition(":")
                     label = label.strip().replace("*", "").rstrip(".")
-                    value = value.strip().lstrip(".").lstrip()
+                    value = value.strip().lstrip(".").lstrip().replace("*", "")
                     indent_level = next((v for k, v in label_to_indent.items() if re.match(k, label + ".")), 0)
                     indent = 0.25 + 0.25 * indent_level
 
@@ -158,13 +155,10 @@ def generate_sop_doc(data):
                     run1.font.size = Pt(11)
                     run1.font.bold = True
                     run1.font.color.rgb = RGBColor(0, 0, 0)
-                    run1.font.size = Pt(11)
-                    run1.font.color.rgb = RGBColor(0, 0, 0)
 
                     run2 = para.add_run(f" {value}")
-                    run2.font.size = Pt(11)
+                    run2.bold = False
                     run2.font.bold = False
-                    run2.font.color.rgb = RGBColor(0, 0, 0)
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
                 elif t == "bullet":
@@ -206,7 +200,7 @@ def generate_sop_doc(data):
 
     footer = doc.sections[0].footer
     footer_para = footer.add_paragraph()
-    run = footer_para.add_run(f"{sop_title}\\n{sop_id}")
+    run = footer_para.add_run(f"{sop_title}\n{sop_id}")
     run.font.size = Pt(10)
     run.font.color.rgb = RGBColor(0, 0, 0)
     footer_para.alignment = 0
