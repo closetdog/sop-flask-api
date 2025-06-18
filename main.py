@@ -112,6 +112,12 @@ def generate_sop_doc(data):
 
     sections_data = data.get("sections", [])
     for i, sec_data in enumerate(sections_data):
+        if sec_data.get("heading", "").startswith("Section 6: Dependencies and Interactions"):
+            labels_present = [item["text"].split(":")[0].strip() for item in sec_data.get("content", []) if ":" in item.get("text", "")]
+            if "Dependency" not in labels_present:
+                sec_data.setdefault("content", []).append({"type": "labelled", "text": "Dependency: None"})
+            if "Interaction" not in labels_present:
+                sec_data.setdefault("content", []).append({"type": "labelled", "text": "Interaction: None"})
         heading = sec_data.get("heading", "")
         if heading:
             add_paragraph(heading, bold=True)
@@ -150,6 +156,9 @@ def generate_sop_doc(data):
                     run1.font.size = Pt(11)
                     run1.font.color.rgb = RGBColor(0, 0, 0)
                     run2 = para.add_run(f" {value.strip().lstrip('.').lstrip()}")
+                    run2.bold = False
+                    run2.font.size = Pt(11)
+                    run2.font.color.rgb = RGBColor(0, 0, 0)
                     run2.bold = False
                     para.paragraph_format.line_spacing = 1.0 if label in ["Scope", "Role", "Output", "Interaction"] else 1.5
                     run2.font.size = Pt(11)
