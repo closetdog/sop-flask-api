@@ -116,8 +116,10 @@ def generate_sop_doc(data):
             labels_present = [item["text"].split(":")[0].strip() for item in sec_data.get("content", []) if ":" in item.get("text", "")]
             if "Dependency" not in labels_present:
                 sec_data.setdefault("content", []).append({"type": "labelled", "text": "Dependency: None"})
-            if "Interaction" not in labels_present:
-                sec_data.setdefault("content", []).append({"type": "labelled", "text": "Interaction: None"})
+            if not any("Dependency:" in item.get("text", "") for item in sec_data.get("content", [])):
+            sec_data.setdefault("content", []).append({"type": "labelled", "text": "Dependency: None"})
+        if not any("Interaction:" in item.get("text", "") for item in sec_data.get("content", [])):
+            sec_data.setdefault("content", []).append({"type": "labelled", "text": "Interaction: None"})
         heading = sec_data.get("heading", "")
         if heading:
             add_paragraph(heading, bold=True)
@@ -155,7 +157,7 @@ def generate_sop_doc(data):
                     run1.bold = True
                     run1.font.size = Pt(11)
                     run1.font.color.rgb = RGBColor(0, 0, 0)
-                    run2 = para.add_run(f" {value.strip().lstrip('.').lstrip()}")
+                    run2 = para.add_run(value.strip().lstrip(".").lstrip())
                     run2.bold = False
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
