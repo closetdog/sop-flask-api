@@ -39,7 +39,7 @@ def generate_sop_doc(data):
 
     def hr():
         para = doc.add_paragraph()
-                    para.style = doc.styles['Normal']
+        para.style = doc.styles['Normal']
         para.paragraph_format.space_before = Pt(0)
         para.paragraph_format.space_after = Pt(0)
         p = para._p
