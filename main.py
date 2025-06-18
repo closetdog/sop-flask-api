@@ -23,6 +23,7 @@ def download_file(filename):
         )
     return {"error": "File not found."}, 404
 
+# This function generates the formatted SOP document using user-provided section data.
 def generate_sop_doc(data):
     doc = Document()
     doc_section = doc.sections[0]
@@ -113,10 +114,10 @@ def generate_sop_doc(data):
     sections_data = data.get("sections", [])
     for i, sec_data in enumerate(sections_data):
         if sec_data.get("heading", "").startswith("Section 6: Dependencies and Interactions"):
-            labels_present = [item["text"].split(":")[0].strip() for item in sec_data.get("content", []) if ":" in item.get("text", "")]
-            if "Dependency" not in labels_present:
-                sec_data.setdefault("content", []).append({"type": "labelled", "text": "Dependency: None"})
-            if not any("Dependency:" in item.get("text", "") for item in sec_data.get("content", [])):
+        if not any("Dependency:" in item.get("text", "") for item in sec_data.get("content", [])):
+            sec_data.setdefault("content", []).append({"type": "labelled", "text": "Dependency: None"})
+        if not any("Interaction:" in item.get("text", "") for item in sec_data.get("content", [])):
+            sec_data.setdefault("content", []).append({"type": "labelled", "text": "Interaction: None"})
             sec_data.setdefault("content", []).append({"type": "labelled", "text": "Dependency: None"})
         if not any("Interaction:" in item.get("text", "") for item in sec_data.get("content", [])):
             sec_data.setdefault("content", []).append({"type": "labelled", "text": "Interaction: None"})
