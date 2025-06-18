@@ -154,13 +154,17 @@ def generate_sop_doc(data):
                     para.paragraph_format.line_spacing = 1.5
                     para.paragraph_format.left_indent = Inches(indent)
 
-                    run1 = para.add_run(f"{label}. ")
-                    run1.bold = True
+                    run1 = para.add_run(f"{label}.")
+                    run1.font.size = Pt(11)
+                    run1.font.bold = True
+                    run1.font.color.rgb = RGBColor(0, 0, 0)
                     run1.font.size = Pt(11)
                     run1.font.color.rgb = RGBColor(0, 0, 0)
 
-                    run2 = para.add_run(value)
-                    run2.bold = False
+                    run2 = para.add_run(f" {value}")
+                    run2.font.size = Pt(11)
+                    run2.font.bold = False
+                    run2.font.color.rgb = RGBColor(0, 0, 0)
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
                 elif t == "bullet":
