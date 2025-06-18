@@ -113,7 +113,12 @@ def generate_sop_doc(data):
 
     sections_data = data.get("sections", [])
     for i, sec_data in enumerate(sections_data):
+        # If Section 6 is present, ensure both Dependency and Interaction labels exist (insert 'None' if missing)
         if sec_data.get("heading", "").startswith("Section 6: Dependencies and Interactions"):
+            if not any("Dependency:" in item.get("text", "") for item in sec_data.get("content", [])):
+                sec_data.setdefault("content", []).append({"type": "labelled", "text": "Dependency: None"})
+            if not any("Interaction:" in item.get("text", "") for item in sec_data.get("content", [])):
+                sec_data.setdefault("content", []).append({"type": "labelled", "text": "Interaction: None"})
         if not any("Dependency:" in item.get("text", "") for item in sec_data.get("content", [])):
             sec_data.setdefault("content", []).append({"type": "labelled", "text": "Dependency: None"})
         if not any("Interaction:" in item.get("text", "") for item in sec_data.get("content", [])):
