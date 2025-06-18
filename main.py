@@ -113,13 +113,7 @@ def generate_sop_doc(data):
 
     sections_data = data.get("sections", [])
     for i, sec_data in enumerate(sections_data):
-        # If Section 6 is present, ensure both Dependency and Interaction labels exist (insert 'None' if missing)
-        if sec_data.get("heading", "").startswith("Section 6: Dependencies and Interactions"):
-            if not any("Dependency:" in item.get("text", "") for item in sec_data.get("content", [])):
-                sec_data.setdefault("content", []).append({"type": "labelled", "text": "Dependency: None"})
-            if not any("Interaction:" in item.get("text", "") for item in sec_data.get("content", [])):
-                sec_data.setdefault("content", []).append({"type": "labelled", "text": "Interaction: None"})
-        if not any("Dependency:" in item.get("text", "") for item in sec_data.get("content", [])):
+                if not any("Dependency:" in item.get("text", "") for item in sec_data.get("content", [])):
             sec_data.setdefault("content", []).append({"type": "labelled", "text": "Dependency: None"})
         if not any("Interaction:" in item.get("text", "") for item in sec_data.get("content", [])):
             sec_data.setdefault("content", []).append({"type": "labelled", "text": "Interaction: None"})
@@ -152,26 +146,27 @@ def generate_sop_doc(data):
 
                 if t == "labelled" and 'Step-by-Step Instructions' in heading:
                     label, _, value = text.partition(":")
-                    label = label.strip().replace("*", "")
-                    value = value.strip()
-                    indent_level = next((v for k, v in label_to_indent.items() if re.match(k, label)), 0)
+                    label = label.strip().replace("*", "").rstrip(".")
+                    value = value.strip().lstrip(".").lstrip()
+                    indent_level = next((v for k, v in label_to_indent.items() if re.match(k, label + ".")), 0)
                     indent = 0.25 + 0.25 * indent_level
+
                     para = doc.add_paragraph()
+                    para.style = doc.styles['Normal']
                     para.paragraph_format.space_before = Pt(0)
                     para.paragraph_format.space_after = Pt(0)
-                    run1 = para.add_run(f"{label}.")
+                    para.paragraph_format.line_spacing = 1.5
+                    para.paragraph_format.left_indent = Inches(indent)
+
+                    run1 = para.add_run(f"{label}. ")
                     run1.bold = True
                     run1.font.size = Pt(11)
                     run1.font.color.rgb = RGBColor(0, 0, 0)
-                    run2 = para.add_run(value.strip().lstrip(".").lstrip())
+
+                    run2 = para.add_run(value)
                     run2.bold = False
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
-                    run2.bold = False
-                    para.paragraph_format.line_spacing = 1.0 if label in ["Scope", "Role", "Output", "Interaction"] else 1.5
-                    run2.font.size = Pt(11)
-                    run2.font.color.rgb = RGBColor(0, 0, 0)
-                    para.paragraph_format.left_indent = Inches(indent)
                 elif t == "bullet":
                     para = doc.add_paragraph()
                     run = para.add_run("• ")
