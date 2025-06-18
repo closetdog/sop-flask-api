@@ -101,13 +101,13 @@ def generate_sop_doc(data):
 
     import re
 
-        label_to_indent = {
-            r"^1\.$": 0,
-            r"^A\.$": 1,
-            r"^1\..$": 2,
-            r"^a\.$": 3,
-            r"^1\...$": 4
-        }
+    label_to_indent = {
+        r"^1\.$": 0,
+        r"^A\.$": 1,
+        r"^1\..$": 2,
+        r"^a\.$": 3,
+        r"^1\...$": 4
+    }
 
     sections_data = data.get("sections", [])
     for i, sec_data in enumerate(sections_data):
