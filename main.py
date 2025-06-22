@@ -43,7 +43,6 @@ def generate_sop_doc(data):
         para.style = doc.styles['Normal']
         para.paragraph_format.space_before = Pt(0)
         para.paragraph_format.space_after = Pt(0)
-        para.paragraph_format.line_spacing = 1.0
         p = para._p
         pPr = p.get_or_add_pPr()
         pBdr = OxmlElement('w:pBdr')
@@ -56,8 +55,6 @@ def generate_sop_doc(data):
         pPr.append(pBdr)
 
     def add_paragraph(text, bold=False, size=11, spacing=1.5, indent=None):
-        if not text.strip():
-            return None
         para = doc.add_paragraph()
         para.paragraph_format.space_before = Pt(0)
         para.paragraph_format.space_after = Pt(0)
@@ -70,29 +67,20 @@ def generate_sop_doc(data):
         run.font.color.rgb = RGBColor(0, 0, 0)
         return para
 
-    def add_table(section_data):
-        table = doc.add_table(rows=1, cols=3)
-        table.autofit = False
-        widths = [Inches(1.5), Inches(2.0), Inches(2.5)]
-        headers = ["Date", "Revised By", "Description"]
-
-        hdr_cells = table.rows[0].cells
-        for i, cell in enumerate(hdr_cells):
-            run = cell.paragraphs[0].add_run(headers[i])
-            run.bold = True
-            run.underline = True
-            cell.paragraphs[0].paragraph_format.space_after = Pt(0)
-            table.columns[i].width = widths[i]
-
-        for row in section_data.get("content", []):
-            cells = table.add_row().cells
-            parts = row.get("text", "|||").split("|||")
-            for i in range(min(3, len(parts))):
-                cells[i].text = parts[i].strip()
-                cells[i].paragraphs[0].paragraph_format.space_after = Pt(0)
+    def add_bullet(text, spacing=1.0):
+        para = doc.add_paragraph(style='List Bullet')
+        para.paragraph_format.left_indent = Inches(0.25)
+        para.paragraph_format.space_before = Pt(0)
+        para.paragraph_format.space_after = Pt(0)
+        para.paragraph_format.line_spacing = spacing
+        run = para.runs[0] if para.runs else para.add_run()
+        run.text = text
+        run.font.size = Pt(11)
+        run.font.color.rgb = RGBColor(0, 0, 0)
+        return para
 
     sop_title = data.get('title', 'Generated SOP')
-    sop_id = data.get('sop_id', 'SOP-ID TBD') if not data.get('sop_id') else data.get('sop_id')
+    sop_id = data.get('sop_id', 'SOP-000')
     prepared_by = data.get('prepared_by', 'Name')
     approved_by = data.get('approved_by', 'Approver')
     revision_date = data.get('revision_date', 'Date')
@@ -104,112 +92,49 @@ def generate_sop_doc(data):
     add_paragraph(f"Revision Date: {revision_date}", spacing=1.0)
     hr()
 
-    import re
-
-    label_to_indent = {
-        r"^1\.$": 0,
-        r"^A\.$": 1,
-        r"^1\..$": 2,
-        r"^a\.$": 3,
-        r"^1\...$": 4
-    }
-
-    sections_data = data.get("sections", [])
-    for i, sec_data in enumerate(sections_data):
-        heading = sec_data.get("heading", "")
+    sections = data.get("sections", [])
+    for section in sections:
+        heading = section.get("heading", "")
         if heading:
-            add_paragraph(heading, bold=True)
+            add_paragraph(heading, bold=True, spacing=1.5)
 
-        if sec_data.get("type") == "table":
-            add_table(sec_data)
-        else:
-            last_type = None
-            bullets_seen = []
-            for idx, item in enumerate(sec_data.get("content", [])):
-                if not item.get("text", "").strip():
-                    continue
-                label = ""
-                if item.get("type") == "labelled" and ":" in item.get("text", ""):
-                    label, _, _ = item["text"].partition(":")
-                    label = label.strip().replace("*", "").rstrip(".")
-                text = item.get("text", "")
-                t = item.get("type", "text")
+        content = section.get("content", [])
+        bullets = []
+        current_label = ""
+        for idx, item in enumerate(content):
+            text = item.get("text", "")
+            type_ = item.get("type", "text")
 
-                if last_type and last_type != t and label not in ["1.", "A.", "a."]:
-                    add_paragraph("", spacing=1.5)
-                last_type = t
+            if type_ == "labelled":
+                if bullets:
+                    for i, b in enumerate(bullets):
+                        spacing = 1.5 if i == len(bullets) - 1 and current_label in ["Objectives:", "Process Owners:"] else 1.0
+                        add_bullet(b, spacing=spacing)
+                    bullets.clear()
+                current_label = text.strip()
+                spacing = 1.0
+                add_paragraph(current_label, bold=True, spacing=spacing)
 
-                if t == "bullet":
-                    bullets_seen.append(idx)
-                    is_scope_bullet = any("Scope" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
-                    is_role_bullet = any("Role" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
-                    is_objective_bullet = any("Objective" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
-                    is_process_owner_bullet = any("Process Owner" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
-                    bullets_remaining = any(c["type"] == "bullet" for c in sec_data["content"][idx+1:])
-                    if is_scope_bullet or is_role_bullet:
-                        spacing = 1.0 if bullets_remaining else 1.5
-                    elif is_objective_bullet:
-                        spacing = 1.5 if not bullets_remaining else 1.0
-                    elif is_process_owner_bullet:
-                        spacing = 1.5 if not bullets_remaining else 1.0
-                    else:
-                        spacing = 1.5
+            elif type_ == "bullet":
+                bullets.append(text)
 
-                    para = doc.add_paragraph()
-                    para.paragraph_format.space_before = Pt(0)
-                    para.paragraph_format.space_after = Pt(0)
-                    para.paragraph_format.line_spacing = spacing
-                    run = para.add_run("\u2022 ")
-                    run.bold = True
-                    run.font.size = Pt(11)
-                    run.font.color.rgb = RGBColor(0, 0, 0)
-                    para.add_run(text).font.color.rgb = RGBColor(0, 0, 0)
-                    para.paragraph_format.left_indent = Inches(0.25)
-                elif t == "sub_bullet":
-                    para = doc.add_paragraph()
-                    run = para.add_run("\u2022 ")
-                    run.bold = True
-                    run.font.size = Pt(11)
-                    run.font.color.rgb = RGBColor(0, 0, 0)
-                    para.add_run(text).font.color.rgb = RGBColor(0, 0, 0)
-                    para.paragraph_format.left_indent = Inches(0.75)
-                elif t == "labelled" and ":" in text:
-                    label, _, value = text.partition(":")
-                    label = label.strip().replace("*", "")
-                    value = value.strip()
-                    spacing = 1.0 if label in ["Scope", "Role", "Output", "Interaction", "Objectives"] else 1.5
-                    if label in ["Process Owner", "Process Owners"]:
-                        remaining = sec_data["content"][idx + 1:]
-                        if not any("Process Owner" in x.get("text", "") for x in remaining):
-                            spacing = 1.5
-                        else:
-                            spacing = 1.0
-                    para = doc.add_paragraph()
-                    para.paragraph_format.space_before = Pt(0)
-                    para.paragraph_format.space_after = Pt(0)
-                    para.paragraph_format.line_spacing = spacing
-                    run1 = para.add_run(f"{label}: ")
-                    run1.bold = True
-                    run1.font.size = Pt(11)
-                    run1.font.color.rgb = RGBColor(0, 0, 0)
-                    run2 = para.add_run(value)
-                    run2.font.size = Pt(11)
-                    run2.font.color.rgb = RGBColor(0, 0, 0)
-                else:
-                    add_paragraph(text)
+        if bullets:
+            for i, b in enumerate(bullets):
+                spacing = 1.5 if i == len(bullets) - 1 and current_label in ["Objectives:", "Process Owners:"] else 1.0
+                add_bullet(b, spacing=spacing)
+            bullets.clear()
 
-        if i < len(sections_data) - 1:
-            hr()
+        hr()
 
+    # Footer
     footer = doc.sections[0].footer
-    footer_para = footer.add_paragraph()
-    footer_para.alignment = 1
-    run = footer_para.add_run(f"{sop_title} [{sop_id}]")
-    run.font.size = Pt(10)
-    run.font.color.rgb = RGBColor(0, 0, 0)
-    para2 = doc.sections[0].footer.add_paragraph()
-    para2.alignment = 1
-    run2 = para2.add_run(f"Revision Date: {revision_date}")
+    para = footer.paragraphs[0] if footer.paragraphs else footer.add_paragraph()
+    para.alignment = 1
+    run1 = para.add_run(f"{sop_title} [{sop_id if sop_id else 'SOP-ID TBD'}]")
+    run1.font.size = Pt(10)
+    run1.font.color.rgb = RGBColor(0, 0, 0)
+    para.add_run("\n")
+    run2 = para.add_run(f"Revision Date: {revision_date}")
     run2.font.size = Pt(10)
     run2.font.color.rgb = RGBColor(0, 0, 0)
 
