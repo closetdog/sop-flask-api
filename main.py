@@ -144,10 +144,13 @@ def generate_sop_doc(data):
                     is_scope_bullet = any("Scope" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
                     is_role_bullet = any("Role" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
                     is_objective_bullet = any("Objective" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
+                    is_process_owner_bullet = any("Process Owner" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
                     bullets_remaining = any(c["type"] == "bullet" for c in sec_data["content"][idx+1:])
                     if is_scope_bullet or is_role_bullet:
                         spacing = 1.0 if bullets_remaining else 1.5
                     elif is_objective_bullet:
+                        spacing = 1.5 if not bullets_remaining else 1.0
+                    elif is_process_owner_bullet:
                         spacing = 1.5 if not bullets_remaining else 1.0
                     else:
                         spacing = 1.5
