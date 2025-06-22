@@ -141,7 +141,7 @@ def generate_sop_doc(data):
 
                 if t == "bullet":
                     bullets_seen.append(idx)
-                    is_scope_bullet = any(lab in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled" and "Scope" in sec_data["content"][j]["text"])
+                    is_scope_bullet = any("Scope" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
                     spacing = 1.0 if (idx + 1 < len(sec_data["content"]) and sec_data["content"][idx + 1].get("type") == "bullet") else (1.0 if is_scope_bullet else 1.5)
 
                     para = doc.add_paragraph()
