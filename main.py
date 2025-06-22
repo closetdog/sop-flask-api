@@ -43,6 +43,7 @@ def generate_sop_doc(data):
         para.style = doc.styles['Normal']
         para.paragraph_format.space_before = Pt(0)
         para.paragraph_format.space_after = Pt(0)
+        para.paragraph_format.line_spacing = 1.0
         p = para._p
         pPr = p.get_or_add_pPr()
         pBdr = OxmlElement('w:pBdr')
@@ -141,7 +142,7 @@ def generate_sop_doc(data):
                     para = doc.add_paragraph()
                     para.paragraph_format.space_before = Pt(0)
                     para.paragraph_format.space_after = Pt(0)
-                    para.paragraph_format.line_spacing = 1.0 if idx < len(sec_data["content"]) - 1 and sec_data["content"][idx + 1].get("type") == "bullet" else 1.5
+                    para.paragraph_format.line_spacing = 1.0 if idx < len(sec_data["content"]) - 1 and sec_data["content"][idx + 1].get("type") == "bullet" else 1.0
                     run = para.add_run("\u2022 ")
                     run.bold = True
                     run.font.size = Pt(11)
