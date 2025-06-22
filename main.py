@@ -154,7 +154,6 @@ def generate_sop_doc(data):
 
                     run2 = para.add_run(f" {value}")
                     run2.bold = False
-                    run2.font.bold = False
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
                 elif t == "bullet":
