@@ -61,13 +61,13 @@ def generate_sop_doc(data):
         para = doc.add_paragraph()
         para.paragraph_format.space_before = Pt(0)
         para.paragraph_format.space_after = Pt(0)
+        para.paragraph_format.line_spacing = spacing
+        if indent is not None:
+            para.paragraph_format.left_indent = Inches(indent)
         run = para.add_run(text)
         run.bold = bold
         run.font.size = Pt(size)
         run.font.color.rgb = RGBColor(0, 0, 0)
-        para.paragraph_format.line_spacing = spacing
-        if indent is not None:
-            para.paragraph_format.left_indent = Inches(indent)
         return para
 
     def add_table(section_data):
@@ -142,7 +142,8 @@ def generate_sop_doc(data):
                 if t == "bullet":
                     bullets_seen.append(idx)
                     is_scope_bullet = any("Scope" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
-                    spacing = 1.0 if (idx + 1 < len(sec_data["content"]) and sec_data["content"][idx + 1].get("type") == "bullet") else (1.0 if is_scope_bullet else 1.5)
+                    is_role_bullet = any("Role" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
+                    spacing = 1.0 if (is_scope_bullet or is_role_bullet) else 1.5
 
                     para = doc.add_paragraph()
                     para.paragraph_format.space_before = Pt(0)
@@ -169,6 +170,7 @@ def generate_sop_doc(data):
                     para = doc.add_paragraph()
                     para.paragraph_format.space_before = Pt(0)
                     para.paragraph_format.space_after = Pt(0)
+                    para.paragraph_format.line_spacing = 1.0 if label in ["Scope", "Role", "Output", "Interaction", "Objectives", "Process Owner", "Process Owners"] else 1.5
                     run1 = para.add_run(f"{label}: ")
                     run1.bold = True
                     run1.font.size = Pt(11)
@@ -176,7 +178,6 @@ def generate_sop_doc(data):
                     run2 = para.add_run(value)
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
-                    para.paragraph_format.line_spacing = 1.0 if label in ["Scope", "Role", "Output", "Interaction", "Objectives"] else 1.5
                 else:
                     add_paragraph(text)
 
