@@ -121,7 +121,7 @@ def generate_sop_doc(data):
             add_table(sec_data)
         else:
             last_type = None
-            for item in sec_data.get("content", []):
+            for idx, item in enumerate(sec_data.get("content", [])):
                 label = ""
                 if item.get("type") == "labelled" and ":" in item.get("text", ""):
                     label, _, _ = item["text"].partition(":")
@@ -158,6 +158,9 @@ def generate_sop_doc(data):
                     run2.font.color.rgb = RGBColor(0, 0, 0)
                 elif t == "bullet":
                     para = doc.add_paragraph()
+                    para.paragraph_format.space_before = Pt(0)
+                    para.paragraph_format.space_after = Pt(0)
+                    para.paragraph_format.line_spacing = 1.0 if idx < len(sec_data["content"]) - 1 and sec_data["content"][idx + 1].get("type") == "bullet" else 1.5
                     run = para.add_run("\u2022 ")
                     run.bold = True
                     run.font.size = Pt(11)
