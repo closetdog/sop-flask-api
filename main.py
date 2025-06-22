@@ -89,7 +89,7 @@ def generate_sop_doc(data):
                 cells[i].paragraphs[0].paragraph_format.space_after = Pt(0)
 
     sop_title = data.get('title', 'Generated SOP')
-    sop_id = data.get('sop_id', 'SOP-000')
+    sop_id = data.get('sop_id', 'SOP-ID TBD') if not data.get('sop_id') else data.get('sop_id')
     prepared_by = data.get('prepared_by', 'Name')
     approved_by = data.get('approved_by', 'Approver')
     revision_date = data.get('revision_date', 'Date')
@@ -195,16 +195,15 @@ def generate_sop_doc(data):
 
     footer = doc.sections[0].footer
     footer_para = footer.add_paragraph()
-    run = footer_para.add_run(f"{sop_title}\n{sop_id}")
+    footer_para.alignment = 1
+    run = footer_para.add_run(f"{sop_title} [{sop_id}]")
     run.font.size = Pt(10)
     run.font.color.rgb = RGBColor(0, 0, 0)
-    footer_para.alignment = 0
-
-    right_footer = footer.add_paragraph()
-    run = right_footer.add_run(f"Revision Date: {revision_date}")
-    run.font.size = Pt(10)
-    run.font.color.rgb = RGBColor(0, 0, 0)
-    right_footer.alignment = 2
+    para2 = doc.sections[0].footer.add_paragraph()
+    para2.alignment = 1
+    run2 = para2.add_run(f"Revision Date: {revision_date}")
+    run2.font.size = Pt(10)
+    run2.font.color.rgb = RGBColor(0, 0, 0)
 
     filename = f"sop_{uuid.uuid4().hex}.docx"
     filepath = os.path.join(DOWNLOAD_FOLDER, filename)
