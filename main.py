@@ -55,6 +55,8 @@ def generate_sop_doc(data):
         pPr.append(pBdr)
 
     def add_paragraph(text, bold=False, size=11, spacing=1.5, indent=None):
+        if not text.strip():
+            return None
         para = doc.add_paragraph()
         para.paragraph_format.space_before = Pt(0)
         para.paragraph_format.space_after = Pt(0)
@@ -122,6 +124,8 @@ def generate_sop_doc(data):
         else:
             last_type = None
             for idx, item in enumerate(sec_data.get("content", [])):
+                if not item.get("text", "").strip():
+                    continue
                 label = ""
                 if item.get("type") == "labelled" and ":" in item.get("text", ""):
                     label, _, _ = item["text"].partition(":")
@@ -133,30 +137,7 @@ def generate_sop_doc(data):
                     add_paragraph("", spacing=1.5)
                 last_type = t
 
-                if t == "labelled" and 'Step-by-Step Instructions' in heading:
-                    label, _, value = text.partition(":")
-                    label = label.strip().replace("*", "").rstrip(".")
-                    value = value.strip().lstrip(".").lstrip().replace("*", "")
-                    indent_level = next((v for k, v in label_to_indent.items() if re.match(k, label + ".")), 0)
-                    indent = 0.25 + 0.25 * indent_level
-
-                    para = doc.add_paragraph()
-                    para.style = doc.styles['Normal']
-                    para.paragraph_format.space_before = Pt(0)
-                    para.paragraph_format.space_after = Pt(0)
-                    para.paragraph_format.line_spacing = 1.5
-                    para.paragraph_format.left_indent = Inches(indent)
-
-                    run1 = para.add_run(f"{label}.")
-                    run1.font.size = Pt(11)
-                    run1.bold = True
-                    run1.font.color.rgb = RGBColor(0, 0, 0)
-
-                    run2 = para.add_run(f" {value}")
-                    run2.bold = False
-                    run2.font.size = Pt(11)
-                    run2.font.color.rgb = RGBColor(0, 0, 0)
-                elif t == "bullet":
+                if t == "bullet":
                     para = doc.add_paragraph()
                     para.paragraph_format.space_before = Pt(0)
                     para.paragraph_format.space_after = Pt(0)
