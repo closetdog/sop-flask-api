@@ -143,7 +143,14 @@ def generate_sop_doc(data):
                     bullets_seen.append(idx)
                     is_scope_bullet = any("Scope" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
                     is_role_bullet = any("Role" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
-                    spacing = 1.0 if (is_scope_bullet or is_role_bullet) else 1.5
+                    is_objective_bullet = any("Objective" in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled")
+                    bullets_remaining = any(c["type"] == "bullet" for c in sec_data["content"][idx+1:])
+                    if is_scope_bullet or is_role_bullet:
+                        spacing = 1.0 if bullets_remaining else 1.5
+                    elif is_objective_bullet:
+                        spacing = 1.5 if not bullets_remaining else 1.0
+                    else:
+                        spacing = 1.5
 
                     para = doc.add_paragraph()
                     para.paragraph_format.space_before = Pt(0)
@@ -168,7 +175,6 @@ def generate_sop_doc(data):
                     label = label.strip().replace("*", "")
                     value = value.strip()
                     spacing = 1.0 if label in ["Scope", "Role", "Output", "Interaction", "Objectives"] else 1.5
-                    # adjust if it's the last process owner
                     if label in ["Process Owner", "Process Owners"]:
                         remaining = sec_data["content"][idx + 1:]
                         if not any("Process Owner" in x.get("text", "") for x in remaining):
