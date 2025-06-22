@@ -167,10 +167,18 @@ def generate_sop_doc(data):
                     label, _, value = text.partition(":")
                     label = label.strip().replace("*", "")
                     value = value.strip()
+                    spacing = 1.0 if label in ["Scope", "Role", "Output", "Interaction", "Objectives"] else 1.5
+                    # adjust if it's the last process owner
+                    if label in ["Process Owner", "Process Owners"]:
+                        remaining = sec_data["content"][idx + 1:]
+                        if not any("Process Owner" in x.get("text", "") for x in remaining):
+                            spacing = 1.5
+                        else:
+                            spacing = 1.0
                     para = doc.add_paragraph()
                     para.paragraph_format.space_before = Pt(0)
                     para.paragraph_format.space_after = Pt(0)
-                    para.paragraph_format.line_spacing = 1.0 if label in ["Scope", "Role", "Output", "Interaction", "Objectives", "Process Owner", "Process Owners"] else 1.5
+                    para.paragraph_format.line_spacing = spacing
                     run1 = para.add_run(f"{label}: ")
                     run1.bold = True
                     run1.font.size = Pt(11)
