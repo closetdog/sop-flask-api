@@ -25,7 +25,7 @@ def download_file(filename):
 
 # This function generates the formatted SOP document using user-provided section data.
 def generate_sop_doc(data):
-    doc = Document()
+    doc = Document("template.docx")
     doc_section = doc.sections[0]
     doc_section.top_margin = Inches(1)
     doc_section.bottom_margin = Inches(1)
@@ -113,9 +113,6 @@ def generate_sop_doc(data):
 
     sections_data = data.get("sections", [])
     for i, sec_data in enumerate(sections_data):
-                
-        
-           
         heading = sec_data.get("heading", "")
         if heading:
             add_paragraph(heading, bold=True)
@@ -128,8 +125,7 @@ def generate_sop_doc(data):
                 label = ""
                 if item.get("type") == "labelled" and ":" in item.get("text", ""):
                     label, _, _ = item["text"].partition(":")
-                    label = label.strip().replace("*", "")
-                    label = label.rstrip(".")
+                    label = label.strip().replace("*", "").rstrip(".")
                 text = item.get("text", "")
                 t = item.get("type", "text")
 
@@ -153,7 +149,7 @@ def generate_sop_doc(data):
 
                     run1 = para.add_run(f"{label}.")
                     run1.font.size = Pt(11)
-                    run1.font.bold = True
+                    run1.bold = True
                     run1.font.color.rgb = RGBColor(0, 0, 0)
 
                     run2 = para.add_run(f" {value}")
@@ -163,7 +159,7 @@ def generate_sop_doc(data):
                     run2.font.color.rgb = RGBColor(0, 0, 0)
                 elif t == "bullet":
                     para = doc.add_paragraph()
-                    run = para.add_run("• ")
+                    run = para.add_run("\u2022 ")
                     run.bold = True
                     run.font.size = Pt(11)
                     run.font.color.rgb = RGBColor(0, 0, 0)
@@ -171,7 +167,7 @@ def generate_sop_doc(data):
                     para.paragraph_format.left_indent = Inches(0.5)
                 elif t == "sub_bullet":
                     para = doc.add_paragraph()
-                    run = para.add_run("• ")
+                    run = para.add_run("\u2022 ")
                     run.bold = True
                     run.font.size = Pt(11)
                     run.font.color.rgb = RGBColor(0, 0, 0)
