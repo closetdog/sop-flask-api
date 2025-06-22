@@ -163,7 +163,7 @@ def generate_sop_doc(data):
                     run.font.size = Pt(11)
                     run.font.color.rgb = RGBColor(0, 0, 0)
                     para.add_run(text).font.color.rgb = RGBColor(0, 0, 0)
-                    para.paragraph_format.left_indent = Inches(0.5)
+                    para.paragraph_format.left_indent = Inches(0.25)
                 elif t == "sub_bullet":
                     para = doc.add_paragraph()
                     run = para.add_run("\u2022 ")
