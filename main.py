@@ -170,7 +170,7 @@ def generate_sop_doc(data):
                     run2 = para.add_run(value)
                     run2.font.size = Pt(11)
                     run2.font.color.rgb = RGBColor(0, 0, 0)
-                    para.paragraph_format.line_spacing = 1.0 if label in ["Scope", "Role", "Output", "Interaction"] else 1.5
+                    para.paragraph_format.line_spacing = 1.0 if label in ["Scope", "Role", "Output", "Interaction", "Objectives"] else 1.5
                 else:
                     add_paragraph(text)
 
