@@ -124,6 +124,7 @@ def generate_sop_doc(data):
             add_table(sec_data)
         else:
             last_type = None
+            bullets_seen = []
             for idx, item in enumerate(sec_data.get("content", [])):
                 if not item.get("text", "").strip():
                     continue
@@ -139,10 +140,14 @@ def generate_sop_doc(data):
                 last_type = t
 
                 if t == "bullet":
+                    bullets_seen.append(idx)
+                    is_scope_bullet = any(lab in sec_data["content"][j]["text"] for j in range(idx) if sec_data["content"][j]["type"] == "labelled" and "Scope" in sec_data["content"][j]["text"])
+                    spacing = 1.0 if (idx + 1 < len(sec_data["content"]) and sec_data["content"][idx + 1].get("type") == "bullet") else (1.0 if is_scope_bullet else 1.5)
+
                     para = doc.add_paragraph()
                     para.paragraph_format.space_before = Pt(0)
                     para.paragraph_format.space_after = Pt(0)
-                    para.paragraph_format.line_spacing = 1.0 if idx < len(sec_data["content"]) - 1 and sec_data["content"][idx + 1].get("type") == "bullet" else 1.0
+                    para.paragraph_format.line_spacing = spacing
                     run = para.add_run("\u2022 ")
                     run.bold = True
                     run.font.size = Pt(11)
