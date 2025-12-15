@@ -253,7 +253,9 @@ def add_numbered_step(doc, text, level):
 def add_note(doc, text, preceding_level):
     """
     Add an italic note paragraph aligned with the preceding step level.
+    Format: "NOTE: " + note text, all in italic
     The note's left indent matches the left indent of that step level.
+    No blank lines before or after the note.
     """
     # Get the left indent for the preceding level (in twips)
     level_indent = STEP_INDENTS.get(preceding_level, STEP_INDENTS[5])
@@ -264,11 +266,19 @@ def add_note(doc, text, preceding_level):
     para.paragraph_format.space_after = Pt(0)
     para.paragraph_format.left_indent = Twips(left_twips)
     
-    run = para.add_run(text)
-    run.italic = True
-    run.font.size = Pt(11)
-    run.font.color.rgb = RGBColor(0, 0, 0)
-    run.font.name = 'Calibri'
+    # Add "NOTE: " prefix
+    note_prefix = para.add_run("NOTE: ")
+    note_prefix.italic = True
+    note_prefix.font.size = Pt(11)
+    note_prefix.font.color.rgb = RGBColor(0, 0, 0)
+    note_prefix.font.name = 'Calibri'
+    
+    # Add note text
+    note_text = para.add_run(text)
+    note_text.italic = True
+    note_text.font.size = Pt(11)
+    note_text.font.color.rgb = RGBColor(0, 0, 0)
+    note_text.font.name = 'Calibri'
     return para
 
 
@@ -439,12 +449,12 @@ def setup_footer(doc, sop_title, sop_id, revision_date):
     first_footer.add_paragraph()
 
 
-# Labels that trigger a blank line before the NEXT different label in same section
-LABELS_NEEDING_SPACE_AFTER = {
-    'Objective', 'Objectives',
-    'Process Owner', 'Process Owners', 'Process Owner(s)',
-    'Input', 'Inputs', 'Input(s)',
-    'Dependency', 'Dependencies', 'Dependency(ies)',
+# Labels that should have a blank line BEFORE them (when not first in section)
+LABELS_NEEDING_SPACE_BEFORE = {
+    'Scope',
+    'Role', 'Roles', 'Role(s)',
+    'Output', 'Outputs', 'Output(s)',
+    'Interaction', 'Interactions', 'Interaction(s)',
 }
 
 # Normalize label names for comparison
@@ -533,8 +543,7 @@ def generate_sop_doc(data):
         else:
             content = sec_data.get('content', [])
             i = 0
-            last_label = None
-            had_bullets_after_label = False
+            is_first_content_item = True
             
             while i < len(content):
                 item = content[i]
@@ -552,8 +561,7 @@ def generate_sop_doc(data):
                 if item_type == 'heading':
                     add_text_paragraph(doc, text, bold=True)
                     add_empty_paragraph(doc)
-                    last_label = None
-                    had_bullets_after_label = False
+                    is_first_content_item = True
                 
                 elif item_type == 'labelled':
                     # Extract label from text
@@ -565,17 +573,13 @@ def generate_sop_doc(data):
                         new_label = text
                         value = ''
                     
-                    # Check if we need spacing before this label
-                    # (if previous label had bullets and this is a different label)
-                    if last_label and had_bullets_after_label:
-                        norm_last = normalize_label(last_label)
-                        norm_new = normalize_label(new_label)
-                        if norm_last != norm_new:
-                            # Check if last label is one that needs space after
-                            for trigger_label in LABELS_NEEDING_SPACE_AFTER:
-                                if normalize_label(trigger_label) == norm_last:
-                                    add_empty_paragraph(doc)
-                                    break
+                    # Check if we need spacing BEFORE this label
+                    # (if this label is one that needs space before and it's not first)
+                    if not is_first_content_item:
+                        for trigger_label in LABELS_NEEDING_SPACE_BEFORE:
+                            if normalize_label(trigger_label) == normalize_label(new_label):
+                                add_empty_paragraph(doc)
+                                break
                     
                     # Check if bullets follow this label
                     bullets_follow = False
@@ -597,35 +601,33 @@ def generate_sop_doc(data):
                     else:
                         add_text_paragraph(doc, text)
                     
-                    last_label = new_label
-                    had_bullets_after_label = False
+                    is_first_content_item = False
                 
                 elif item_type == 'bullet':
                     add_bullet(doc, text, indent_level=0)
-                    had_bullets_after_label = True
+                    is_first_content_item = False
                 
                 elif item_type == 'sub_bullet':
                     add_bullet(doc, text, indent_level=1)
-                    had_bullets_after_label = True
+                    is_first_content_item = False
                 
                 elif item_type == 'step':
                     level = item.get('level', 1)
                     level = max(1, min(5, level))
                     add_numbered_step(doc, text, level)
                     last_step_level = level
-                    last_label = None
-                    had_bullets_after_label = False
+                    is_first_content_item = False
                 
                 elif item_type == 'note':
-                    add_empty_paragraph(doc)
+                    # No blank lines before or after - just add the note
                     add_note(doc, text, last_step_level)
-                    add_empty_paragraph(doc)
                 
                 elif item_type == 'spacer':
                     add_empty_paragraph(doc)
                 
                 else:
                     add_text_paragraph(doc, text)
+                    is_first_content_item = False
                 
                 i += 1
         
