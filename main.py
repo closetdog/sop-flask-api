@@ -614,6 +614,11 @@ def generate_sop_doc(data):
                 elif item_type == 'step':
                     level = item.get('level', 1)
                     level = max(1, min(5, level))
+                    
+                    # Add blank line before level 1 steps when returning from deeper levels
+                    if level == 1 and last_step_level > 1:
+                        add_empty_paragraph(doc)
+                    
                     add_numbered_step(doc, text, level)
                     last_step_level = level
                     is_first_content_item = False
