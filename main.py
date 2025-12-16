@@ -289,6 +289,7 @@ def add_revision_table(doc, rows_data):
     - Bold headers with bottom border (sz=12)
     - First data row has top border (sz=12) creating single separator line
     - Column widths as percentage: ~27.4%, ~19.7%, ~52.8%
+    - Justified alignment for all cells
     """
     table = doc.add_table(rows=1, cols=3)
     table.alignment = WD_TABLE_ALIGNMENT.LEFT
@@ -316,6 +317,16 @@ def add_revision_table(doc, rows_data):
         tblBorders.append(border)
     tblPr.append(tblBorders)
     
+    # Add tblGrid with absolute column widths (in twips)
+    # These are the widths from the template: 2628, 1890, 5058
+    tblGrid = OxmlElement('w:tblGrid')
+    for width in [2628, 1890, 5058]:
+        gridCol = OxmlElement('w:gridCol')
+        gridCol.set(qn('w:w'), str(width))
+        tblGrid.append(gridCol)
+    # Insert tblGrid after tblPr
+    tblPr.addnext(tblGrid)
+    
     # Column widths in pct (out of 5000): 1372, 987, 2641
     col_widths_pct = [1372, 987, 2641]
     headers = ["Date", "Revised By", "Description"]
@@ -341,9 +352,10 @@ def add_revision_table(doc, rows_data):
         tcBorders.append(bottom)
         tcPr.append(tcBorders)
         
-        # Add header text
+        # Add header text with justified alignment
         para = cell.paragraphs[0]
         para.paragraph_format.space_after = Pt(0)
+        para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY  # Justified alignment
         run = para.add_run(header)
         run.bold = True
         run.font.size = Pt(11)
@@ -394,9 +406,10 @@ def add_revision_table(doc, rows_data):
                 tcBorders.append(top)
                 tcPr.append(tcBorders)
             
-            # Add cell text
+            # Add cell text with justified alignment
             para = cell.paragraphs[0]
             para.paragraph_format.space_after = Pt(0)
+            para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY  # Justified alignment
             run = para.add_run(value)
             run.font.size = Pt(11)
             run.font.color.rgb = RGBColor(0, 0, 0)
